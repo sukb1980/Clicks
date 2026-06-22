@@ -57,27 +57,7 @@ body {
   }
 }
 
-/* Header & Notch mockup */
-.status-bar-notch {
-  background-color: #000000;
-  height: 30px;
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 20px;
-  color: #ffffff;
-  font-size: 12px;
-  font-weight: 500;
-  z-index: 100;
-}
 
-.status-bar-notch .notch-center {
-  width: 110px;
-  height: 20px;
-  background-color: #000000;
-  border-radius: 0 0 12px 12px;
-}
 
 /* Scrollable screen container */
 .app-screen-content {

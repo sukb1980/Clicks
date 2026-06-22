@@ -252,16 +252,6 @@ export default function App() {
 
       {/* Main Mobile Screen Bezel */}
       <div className="app-viewport-wrapper">
-        
-        {/* Apple/iPhone Simulated status bar */}
-        <div className="status-bar-notch">
-          <span>8:50</span>
-          <div className="notch-center"></div>
-          <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-            <span>📶</span>
-            <span>🔋 24%</span>
-          </div>
-        </div>
 
         {/* Dynamic header depending on context */}
         {renderHeader()}
