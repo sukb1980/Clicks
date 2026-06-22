@@ -330,9 +330,11 @@ export default function App() {
           {activeTab === 'Pharmacy' && (
             <Search size={20} color="var(--primary-blue)" style={{ cursor: 'pointer' }} />
           )}
-          <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: '#e2e8f0', color: 'var(--primary-blue)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 600 }}>
-            {db.user.avatar}
-          </div>
+          {isLoggedIn && (
+            <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: '#e2e8f0', color: 'var(--primary-blue)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 600 }}>
+              {db.user.avatar}
+            </div>
+          )}
         </div>
       </div>
     );
