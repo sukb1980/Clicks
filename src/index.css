@@ -73,7 +73,38 @@ body {
   flex-direction: column;
   position: relative;
   scroll-behavior: smooth;
+  /* Ensure children always fill 100% width */
+  align-items: stretch;
 }
+
+/* Standard screen root — every screen's outermost div uses this */
+.screen-root {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+/* Flush variant: no outer padding (screen manages its own per-section padding) */
+.screen-root--flush {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-sizing: border-box;
+}
+
+/* Full-height variant: screen needs to fill the remaining viewport (e.g. empty cart, PayU) */
+.screen-root--fill {
+  width: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
 
 /* Custom scrollbar to look sleek */
 .app-screen-content::-webkit-scrollbar {

@@ -478,7 +478,7 @@ export default function App() {
   // Flow 1: Home Dashboard Screen
   function renderHomeDashboard() {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '16px' }}>
+      <div className="screen-root">
         
         {/* Welcome Text */}
         <div style={{ backgroundColor: '#ffffff', borderRadius: '12px', padding: '16px', border: '1px solid #e2e8f0' }}>
@@ -549,7 +549,7 @@ export default function App() {
   // My Account Detail Screen
   function renderMyAccountScreen() {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '16px' }}>
+      <div className="screen-root">
         <h2 style={{ fontSize: '16px', fontWeight: 700, textAlign: 'center', color: 'var(--primary-blue)' }}>My Account</h2>
         
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', padding: '16px 0' }}>
@@ -587,7 +587,7 @@ export default function App() {
   // Order history status screens
   function renderOrderHistoryScreen() {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '16px' }}>
+      <div className="screen-root">
         <h2 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--primary-blue)' }}>My orders</h2>
         
         <div style={{ display: 'flex', gap: '12px', borderBottom: '1px solid #e2e8f0', paddingBottom: '12px' }}>
@@ -624,7 +624,7 @@ export default function App() {
     if (!successOrder) return null;
 
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '16px' }}>
+      <div className="screen-root">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ fontSize: '12px', color: 'var(--text-gray)' }}>Help</span>
           <h2 style={{ fontSize: '14px', fontWeight: 700 }}>Order {successOrder.id}</h2>
@@ -792,7 +792,7 @@ export default function App() {
     const products = INITIAL_PRODUCTS.filter(p => searchQuery === '' || p.name.toLowerCase().includes(searchQuery.toLowerCase()));
 
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+      <div className="screen-root--flush">
         
         {/* Set Location Bar */}
         <div onClick={() => setLocationOverlay(true)} style={{ backgroundColor: '#ffffff', borderBottom: '1px solid #e2e8f0', padding: '10px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}>
@@ -874,7 +874,7 @@ export default function App() {
   // Pharmacy Landing tab loader
   function renderPharmacyLanding() {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '16px' }}>
+      <div className="screen-root">
         <h2 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--primary-blue)', textAlign: 'center' }}>How can Clicks Pharmacy help you today?</h2>
         
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
@@ -924,7 +924,7 @@ export default function App() {
     if (!selectedProduct) return null;
 
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '16px', backgroundColor: '#ffffff', height: '100%' }}>
+      <div className="screen-root" style={{ backgroundColor: '#ffffff' }}>
         <img src={selectedProduct.image} alt={selectedProduct.name} style={{ width: '100%', height: '200px', objectFit: 'cover', borderRadius: '12px' }} />
         
         <div>
@@ -962,7 +962,7 @@ export default function App() {
   function renderCartView() {
     if (cartItems.length === 0) {
       return (
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '12px', padding: '40px 20px', height: '100%' }}>
+        <div className="screen-root--fill" style={{ alignItems: 'center', justifyContent: 'center', gap: '12px', padding: '40px 20px' }}>
           <ShoppingCart size={48} color="var(--text-gray)" />
           <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-gray)' }}>Your cart is empty.</span>
           <button onClick={() => runDemoFlow('shop')} style={{ backgroundColor: 'var(--primary-blue)', color: '#ffffff', border: 'none', borderRadius: '20px', padding: '10px 24px', fontSize: '13px', fontWeight: 600 }}>
@@ -975,7 +975,7 @@ export default function App() {
     const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
 
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '16px', height: '100%' }}>
+      <div className="screen-root">
         <h2 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--primary-blue)' }}>Over-the-counter Cart</h2>
         
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', flex: 1 }}>
@@ -1032,9 +1032,8 @@ export default function App() {
   // Flow 5: OTC Medical Questionnaire wizard
   function renderOtcQuestionnaireScreen() {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '16px' }}>
+      <div className="screen-root">
         <h2 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--primary-blue)', textAlign: 'center' }}>Medical questionnaire</h2>
-        <span style={{ fontSize: '12px', color: 'var(--text-gray)' }}>
           Before we can process this OTC order, please answer a few medical questions for the patient to confirm the medicine is safe.
         </span>
 
@@ -1150,10 +1149,8 @@ export default function App() {
   // Checkout Details screen (Delivery options + patient details selection)
   function renderCheckoutDetailsScreen() {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '16px' }}>
+      <div className="screen-root">
         <h2 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--primary-blue)' }}>How would you like to get your medication order?</h2>
-        
-        {/* Toggle options */}
         <div style={{ display: 'flex', gap: '8px', backgroundColor: '#e2e8f0', padding: '4px', borderRadius: '8px' }}>
           <button 
             onClick={() => setDeliveryType('Delivery')}
@@ -1238,7 +1235,7 @@ export default function App() {
     const total = subtotal + (deliveryType === 'Delivery' ? 35 : 0);
 
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '16px' }}>
+      <div className="screen-root">
         
         {/* Medical Aid Prompter */}
         {claimMedicalAid === null ? (
@@ -1368,7 +1365,7 @@ export default function App() {
     const total = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0) + (deliveryType === 'Delivery' ? 35 : 0);
 
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', padding: '30px 20px', height: '100%', backgroundColor: '#ffffff' }}>
+      <div className="screen-root--fill" style={{ gap: '20px', padding: '30px 20px', backgroundColor: '#ffffff' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e2e8f0', paddingBottom: '12px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
             <span style={{ color: 'var(--primary-blue)', fontWeight: 800, fontSize: '18px' }}>CLICKS</span>
@@ -1426,7 +1423,7 @@ export default function App() {
   // Payment Cancelled redirect screen
   function renderPaymentCancelledScreen() {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '16px', padding: '40px 20px', height: '100%', backgroundColor: '#ffffff', textAlign: 'center' }}>
+      <div className="screen-root--fill" style={{ alignItems: 'center', justifyContent: 'center', gap: '16px', padding: '40px 20px', backgroundColor: '#ffffff', textAlign: 'center' }}>
         <AlertCircle size={48} color="#e53e3e" />
         <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--primary-blue)' }}>Your transaction was successfully cancelled.</h3>
         <span style={{ fontSize: '12px', color: 'var(--text-gray)' }}>You will be redirected shortly. If you are not redirected, click below.</span>
@@ -1440,7 +1437,7 @@ export default function App() {
   // Flow 4: Script Upload recipient step
   function renderScriptRecipientScreen() {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '16px' }}>
+      <div className="screen-root">
         <h2 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--primary-blue)', textAlign: 'center' }}>Who is the script for?</h2>
         
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -1475,7 +1472,7 @@ export default function App() {
   // Script Upload Medical Info step
   function renderScriptMedicalInfoScreen() {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '16px' }}>
+      <div className="screen-root">
         <h2 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--primary-blue)', textAlign: 'center' }}>Your medical information</h2>
         
         {/* Generic Substitutions */}
@@ -1554,7 +1551,7 @@ export default function App() {
   // Script Medical Aid selection screen
   function renderScriptMedicalAidScreen() {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '16px' }}>
+      <div className="screen-root">
         <h2 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--primary-blue)', textAlign: 'center' }}>Do you want to claim from medical aid for this order?</h2>
         
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -1578,7 +1575,7 @@ export default function App() {
   // Script prepayment selection screen (SMS Prepayment link choices)
   function renderScriptPrepaymentScreen() {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '16px' }}>
+      <div className="screen-root">
         <h2 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--primary-blue)' }}>How would you like to pay?</h2>
         
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -1612,7 +1609,7 @@ export default function App() {
     if (!successOrder) return null;
 
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', padding: '16px', height: '100%' }}>
+      <div className="screen-root" style={{ gap: '20px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ width: '20px' }}></span>
           <h2 style={{ fontSize: '14px', fontWeight: 700 }}>Order submitted!</h2>
@@ -1658,7 +1655,7 @@ export default function App() {
   // ClubCard screen mockup
   function renderClubCardView() {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', padding: '24px 16px', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+      <div className="screen-root" style={{ gap: '20px', alignItems: 'center', justifyContent: 'center' }}>
         <h2 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--primary-blue)' }}>My ClubCard</h2>
         
         {/* Card mockup */}
