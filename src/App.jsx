@@ -213,13 +213,14 @@ export default function App() {
   return (
     <div style={{ display: 'flex', gap: '30px', alignItems: 'center' }}>
       
-      {/* Floating Demo Trigger Button (Mobile only) */}
-      <button 
-        className="demo-fab" 
+      {/* Floating Demo Trigger Button (Mobile only) — small circle FAB */}
+      <button
+        className="demo-fab"
         onClick={() => setIsDemoOpen(!isDemoOpen)}
         title="Demo Controls"
+        aria-label="Open demo controls"
       >
-        {isDemoOpen ? <X size={18} /> : <Sliders size={18} />}
+        {isDemoOpen ? <X size={20} /> : <Plus size={20} />}
         <span>Demo Controls</span>
       </button>
 
