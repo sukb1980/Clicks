@@ -486,28 +486,48 @@ export default function App() {
           <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--primary-blue)', marginTop: '4px' }}>A****a</h2>
         </div>
 
-        {/* Shortcuts grid */}
+        {/* Shortcuts grid — round image icon buttons */}
         <div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
             <h3 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-dark)' }}>My shortcuts</h3>
             <span style={{ fontSize: '12px', color: 'var(--primary-blue)', cursor: 'pointer' }}>Edit</span>
           </div>
-          
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-            <div className="shortcut-card" style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '16px', cursor: 'pointer' }}>
-              <span style={{ fontWeight: 600, fontSize: '13px', color: 'var(--primary-blue)' }}>My bookings</span>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
+            {/* My Bookings */}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+              <div style={{ width: '60px', height: '60px', borderRadius: '50%', overflow: 'hidden', border: '2px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+                <img src="https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&q=80&w=120" alt="My bookings" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              </div>
+              <span style={{ fontSize: '10px', fontWeight: 600, color: 'var(--text-dark)', textAlign: 'center', lineHeight: '1.2' }}>My bookings</span>
             </div>
-            <div onClick={() => runDemoFlow('script')} className="shortcut-card" style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '16px', cursor: 'pointer' }}>
-              <span style={{ fontWeight: 600, fontSize: '13px', color: 'var(--primary-blue)' }}>My scripts</span>
+
+            {/* My Scripts */}
+            <div onClick={() => runDemoFlow('script')} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+              <div style={{ width: '60px', height: '60px', borderRadius: '50%', overflow: 'hidden', border: '2px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+                <img src="https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&q=80&w=120" alt="My scripts" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              </div>
+              <span style={{ fontSize: '10px', fontWeight: 600, color: 'var(--text-dark)', textAlign: 'center', lineHeight: '1.2' }}>My scripts</span>
             </div>
-            <div className="shortcut-card" style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '16px', cursor: 'pointer' }}>
-              <span style={{ fontWeight: 600, fontSize: '13px', color: 'var(--primary-blue)' }}>My lists</span>
+
+            {/* My Lists */}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+              <div style={{ width: '60px', height: '60px', borderRadius: '50%', overflow: 'hidden', border: '2px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+                <img src="https://images.unsplash.com/photo-1484480974693-6ca0a78fb36b?auto=format&fit=crop&q=80&w=120" alt="My lists" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              </div>
+              <span style={{ fontSize: '10px', fontWeight: 600, color: 'var(--text-dark)', textAlign: 'center', lineHeight: '1.2' }}>My lists</span>
             </div>
-            <div onClick={() => setCurrentScreen('order_history')} className="shortcut-card" style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '16px', cursor: 'pointer' }}>
-              <span style={{ fontWeight: 600, fontSize: '13px', color: 'var(--primary-blue)' }}>My orders</span>
+
+            {/* My Orders */}
+            <div onClick={() => setCurrentScreen('order_history')} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+              <div style={{ width: '60px', height: '60px', borderRadius: '50%', overflow: 'hidden', border: '2px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+                <img src="https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?auto=format&fit=crop&q=80&w=120" alt="My orders" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              </div>
+              <span style={{ fontSize: '10px', fontWeight: 600, color: 'var(--text-dark)', textAlign: 'center', lineHeight: '1.2' }}>My orders</span>
             </div>
           </div>
         </div>
+
 
         {/* Promo banner */}
         <div style={{ borderRadius: '16px', overflow: 'hidden', height: '140px', position: 'relative', backgroundColor: '#e2f0fe' }}>
@@ -1034,6 +1054,7 @@ export default function App() {
     return (
       <div className="screen-root">
         <h2 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--primary-blue)', textAlign: 'center' }}>Medical questionnaire</h2>
+        <span style={{ fontSize: '12px', color: 'var(--text-gray)' }}>
           Before we can process this OTC order, please answer a few medical questions for the patient to confirm the medicine is safe.
         </span>
 
