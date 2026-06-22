@@ -1,0 +1,16 @@
+{
+  "short_name": "Clicks",
+  "name": "Clicks Pharmacy",
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any"
+    }
+  ],
+  "start_url": ".",
+  "background_color": "#ffffff",
+  "theme_color": "#004b87",
+  "display": "standalone",
+  "orientation": "portrait"
+}
