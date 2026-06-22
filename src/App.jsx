@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   Menu, User, ShoppingBag, Plus, Search, ChevronRight, X, Camera, Image,
   ArrowLeft, Check, AlertCircle, ShoppingCart, Info, Phone, MessageSquare,
-  Lock, ArrowRight, Star
+  Lock, ArrowRight, Star, Sliders
 } from 'lucide-react';
 import { loadState, saveState, INITIAL_PRODUCTS, INITIAL_STORES, INITIAL_DEPENDENTS } from './data/db';
 
@@ -12,6 +12,7 @@ export default function App() {
 
   // Navigation states
   const [activeTab, setActiveTab] = useState('MyClicks'); // MyClicks, Shop, ClubCard, Pharmacy, Cart
+  const [isDemoOpen, setIsDemoOpen] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [currentFlow, setCurrentFlow] = useState('login'); // home, login, pharmacy, shop, cart, payment, script, otc_delivery
   const [currentScreen, setCurrentScreen] = useState('login_email'); // sub-screen routing
@@ -115,6 +116,7 @@ export default function App() {
 
   // Helper to jump to flows for demo purposes
   const runDemoFlow = (flowName) => {
+    setIsDemoOpen(false);
     setIsDrawerOpen(false);
     setLocationOverlay(false);
     setIsScriptPopup(false);
@@ -211,8 +213,18 @@ export default function App() {
   return (
     <div style={{ display: 'flex', gap: '30px', alignItems: 'center' }}>
       
+      {/* Floating Demo Trigger Button (Mobile only) */}
+      <button 
+        className="demo-fab" 
+        onClick={() => setIsDemoOpen(!isDemoOpen)}
+        title="Demo Controls"
+      >
+        {isDemoOpen ? <X size={18} /> : <Sliders size={18} />}
+        <span>Demo Controls</span>
+      </button>
+
       {/* Demo Dashboard (collapsible on mobile, visible on desktop) */}
-      <div className="demo-dashboard">
+      <div className={`demo-dashboard ${isDemoOpen ? 'open' : ''}`}>
         <h3>Clicks Demo Control</h3>
         <button onClick={() => runDemoFlow('login')} className={`demo-btn ${currentFlow === 'login' ? 'active' : ''}`}>
           Flow 1: Login Sequence
