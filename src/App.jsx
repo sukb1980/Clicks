@@ -277,6 +277,9 @@ export default function App() {
     if (currentScreen === 'payu_form' || currentScreen === 'payment_cancelled') {
       return null; // hide header in full screen payment forms
     }
+    if (currentScreen === 'login_email' || currentScreen === 'login_password') {
+      return null; // login screens have their own brand hero — no top bar needed
+    }
 
     let leftButton = null;
     if (currentScreen === 'login_email') {
@@ -672,52 +675,108 @@ export default function App() {
   function renderLoginFlow() {
     if (currentScreen === 'login_email') {
       return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', padding: '30px 20px', width: '100%', height: '100%', minHeight: '100%', backgroundColor: '#ffffff' }}>
-          <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--primary-blue)', marginTop: '10px' }}>Sign into your Clicks account.</h2>
-          
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <label style={{ fontSize: '11px', color: 'var(--text-gray)', fontWeight: 500 }}>Email/ClubCard/Cell Phone</label>
-            <input 
-              type="text" 
-              value={loginEmail} 
-              onChange={(e) => setLoginEmail(e.target.value)} 
-              style={{ border: '1px solid #cbd5e0', borderRadius: '8px', padding: '12px', fontSize: '14px', outline: 'none' }} 
-            />
+        <div style={{ display: 'flex', flexDirection: 'column', flex: 1, backgroundColor: '#ffffff' }}>
+          {/* Brand Hero */}
+          <div style={{ backgroundColor: 'var(--primary-blue)', padding: '40px 24px 32px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '4px' }}>
+              <span style={{ color: '#ffffff', fontWeight: 800, fontSize: '28px', letterSpacing: '0.08em' }}>CLICKS</span>
+              <span style={{ color: 'var(--primary-green)', fontWeight: 800, fontSize: '28px' }}>+</span>
+            </div>
+            <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: '13px', fontWeight: 400 }}>Your health. Your way.</span>
           </div>
 
-          <button onClick={() => setCurrentScreen('login_password')} style={{ backgroundColor: 'var(--primary-blue)', color: '#ffffff', border: 'none', borderRadius: '24px', padding: '14px', fontWeight: 600, cursor: 'pointer', marginTop: '10px' }}>
-            Continue
-          </button>
+          {/* Form area */}
+          <div style={{ flex: 1, padding: '32px 24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <div>
+              <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--primary-blue)' }}>Sign in to your account</h2>
+              <p style={{ fontSize: '13px', color: 'var(--text-gray)', marginTop: '6px' }}>Enter your email, ClubCard or cell number to get started.</p>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <label style={{ fontSize: '12px', color: 'var(--text-gray)', fontWeight: 600 }}>Email / ClubCard / Cell Phone</label>
+              <input
+                type="text"
+                value={loginEmail}
+                onChange={(e) => setLoginEmail(e.target.value)}
+                style={{ border: '1.5px solid #cbd5e0', borderRadius: '10px', padding: '13px 14px', fontSize: '14px', outline: 'none', width: '100%', transition: 'border-color 0.2s' }}
+                onFocus={(e) => e.target.style.borderColor = 'var(--primary-blue)'}
+                onBlur={(e) => e.target.style.borderColor = '#cbd5e0'}
+              />
+            </div>
+
+            <button
+              onClick={() => setCurrentScreen('login_password')}
+              style={{ backgroundColor: 'var(--primary-blue)', color: '#ffffff', border: 'none', borderRadius: '24px', padding: '15px', fontWeight: 700, fontSize: '15px', cursor: 'pointer', width: '100%', marginTop: '4px' }}
+            >
+              Continue
+            </button>
+
+            <div style={{ textAlign: 'center', marginTop: '4px' }}>
+              <span style={{ fontSize: '13px', color: 'var(--text-gray)' }}>Don't have an account? </span>
+              <span style={{ fontSize: '13px', color: 'var(--primary-blue)', fontWeight: 600, cursor: 'pointer' }}>Register</span>
+            </div>
+          </div>
         </div>
       );
     }
 
     if (currentScreen === 'login_password') {
       return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', padding: '30px 20px', width: '100%', height: '100%', minHeight: '100%', backgroundColor: '#ffffff' }}>
-          <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--primary-blue)', marginTop: '10px' }}>Welcome</h2>
-          <span style={{ fontSize: '12px', color: 'var(--text-gray)' }}>Enter your password to continue.</span>
-          
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <label style={{ fontSize: '11px', color: 'var(--text-gray)', fontWeight: 500 }}>Password</label>
-            <input 
-              type="password" 
-              value={loginPassword} 
-              onChange={(e) => setLoginPassword(e.target.value)} 
-              placeholder="••••••••"
-              style={{ border: '1px solid #cbd5e0', borderRadius: '8px', padding: '12px', fontSize: '14px', outline: 'none' }} 
-            />
+        <div style={{ display: 'flex', flexDirection: 'column', flex: 1, backgroundColor: '#ffffff' }}>
+          {/* Brand Hero */}
+          <div style={{ backgroundColor: 'var(--primary-blue)', padding: '40px 24px 32px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '4px' }}>
+              <span style={{ color: '#ffffff', fontWeight: 800, fontSize: '28px', letterSpacing: '0.08em' }}>CLICKS</span>
+              <span style={{ color: 'var(--primary-green)', fontWeight: 800, fontSize: '28px' }}>+</span>
+            </div>
+            <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: '13px', fontWeight: 400 }}>Your health. Your way.</span>
           </div>
 
-          <button onClick={handleSignInSubmit} style={{ backgroundColor: 'var(--primary-blue)', color: '#ffffff', border: 'none', borderRadius: '24px', padding: '14px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            {isSigningIn ? <div className="loading-spinner-circle" style={{ width: '20px', height: '20px', borderTopColor: '#ffffff' }}></div> : 'Sign in'}
-          </button>
+          {/* Form area */}
+          <div style={{ flex: 1, padding: '32px 24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <div>
+              <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--primary-blue)' }}>Welcome back!</h2>
+              <p style={{ fontSize: '13px', color: 'var(--text-gray)', marginTop: '6px' }}>Enter your password to sign in as <strong>{loginEmail}</strong>.</p>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <label style={{ fontSize: '12px', color: 'var(--text-gray)', fontWeight: 600 }}>Password</label>
+                <span style={{ fontSize: '12px', color: 'var(--primary-blue)', fontWeight: 600, cursor: 'pointer' }}>Forgot password?</span>
+              </div>
+              <input
+                type="password"
+                value={loginPassword}
+                onChange={(e) => setLoginPassword(e.target.value)}
+                placeholder="Enter your password"
+                style={{ border: '1.5px solid #cbd5e0', borderRadius: '10px', padding: '13px 14px', fontSize: '14px', outline: 'none', width: '100%', transition: 'border-color 0.2s' }}
+                onFocus={(e) => e.target.style.borderColor = 'var(--primary-blue)'}
+                onBlur={(e) => e.target.style.borderColor = '#cbd5e0'}
+              />
+            </div>
+
+            <button
+              onClick={handleSignInSubmit}
+              style={{ backgroundColor: 'var(--primary-blue)', color: '#ffffff', border: 'none', borderRadius: '24px', padding: '15px', fontWeight: 700, fontSize: '15px', cursor: 'pointer', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '4px' }}
+            >
+              {isSigningIn
+                ? <div className="loading-spinner-circle" style={{ width: '22px', height: '22px', borderTopColor: '#ffffff' }}></div>
+                : 'Sign in'
+              }
+            </button>
+
+            <div style={{ textAlign: 'center', marginTop: '4px' }}>
+              <span style={{ fontSize: '13px', color: 'var(--text-gray)' }}>Don't have an account? </span>
+              <span style={{ fontSize: '13px', color: 'var(--primary-blue)', fontWeight: 600, cursor: 'pointer' }}>Register</span>
+            </div>
+          </div>
         </div>
       );
     }
 
     return null;
   }
+
 
   function handleSignInSubmit() {
     setIsSigningIn(true);
