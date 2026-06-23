@@ -221,10 +221,8 @@ export default function App() {
       setCurrentScreen('clicksgo_confirm');
     } else if (flowName === 'clicksgo_recipient') {
       setCurrentScreen('clicksgo_recipient');
-    } else if (flowName === 'clicksgo_questionnaire_otc') {
-      setCurrentScreen('clicksgo_questionnaire_otc');
-    } else if (flowName === 'clicksgo_questionnaire_script') {
-      setCurrentScreen('clicksgo_questionnaire_script');
+    } else if (flowName === 'clicksgo_questionnaire') {
+      setCurrentScreen('clicksgo_questionnaire');
     } else if (flowName === 'clicksgo_track') {
       setCurrentScreen('clicksgo_track');
     } else if (flowName === 'home') {
@@ -317,7 +315,6 @@ export default function App() {
   };
 
   const handleBackNavigation = () => {
-    const hasOtc = successOrder?.products.some(p => !p.subtext?.includes('script') && !p.subtext?.includes('Refill')) || false;
     const backMap = {
       clicksgo_address: 'clicksgo_home',
       clicksgo_pharmacy: 'clicksgo_address',
@@ -325,8 +322,7 @@ export default function App() {
       clicksgo_review: 'clicksgo_shop',
       clicksgo_confirm: 'clicksgo_review',
       clicksgo_recipient: 'clicksgo_confirm',
-      clicksgo_questionnaire_otc: 'clicksgo_recipient',
-      clicksgo_questionnaire_script: hasOtc ? 'clicksgo_questionnaire_otc' : 'clicksgo_recipient',
+      clicksgo_questionnaire: 'clicksgo_recipient',
       clicksgo_track: 'clicksgo_home',
       home_dashboard: 'clicksgo_home',
       order_history: 'home_dashboard',
@@ -341,7 +337,7 @@ export default function App() {
   function renderHeader() {
     if (currentScreen === 'login_email' || currentScreen === 'login_password') return null;
     if (currentScreen === 'payu_form' || currentScreen === 'payment_cancelled') return null;
-    if (currentScreen === 'clicksgo_questionnaire_otc' || currentScreen === 'clicksgo_questionnaire_script') return null;
+    if (currentScreen === 'clicksgo_questionnaire') return null;
     if (currentScreen === 'clicksgo_recipient') {
       return (
         <div className="app-bar" style={{ borderBottom: 'none', background: '#fff', paddingBottom: 0 }}>
@@ -406,7 +402,7 @@ export default function App() {
 
   // ─── BOTTOM NAV ───────────────────────────────────────────────────────
   function renderBottomNav() {
-    if (['login_email', 'login_password', 'payu_form', 'payment_cancelled', 'clicksgo_recipient', 'clicksgo_questionnaire_otc', 'clicksgo_questionnaire_script'].includes(currentScreen)) return null;
+    if (['login_email', 'login_password', 'payu_form', 'payment_cancelled', 'clicksgo_recipient', 'clicksgo_questionnaire'].includes(currentScreen)) return null;
 
     const tabs = [
       { id: 'MyClicks', label: 'MyClicks', icon: <User />, screen: 'clicksgo_home' },
@@ -447,8 +443,7 @@ export default function App() {
       clicksgo_review: renderClicksGoReview,
       clicksgo_confirm: renderClicksGoConfirm,
       clicksgo_recipient: renderClicksGoRecipient,
-      clicksgo_questionnaire_otc: renderClicksGoQuestionnaireOtc,
-      clicksgo_questionnaire_script: renderClicksGoQuestionnaireScript,
+      clicksgo_questionnaire: renderClicksGoQuestionnaire,
       clicksgo_track: renderClicksGoTrack,
       home_dashboard: renderHomeDashboard,
       my_account: renderMyAccountScreen,
@@ -1493,18 +1488,7 @@ export default function App() {
             <button
               key={idx}
               onClick={() => {
-                const otcCount = successOrder?.products.filter(p => !p.subtext?.includes('script') && !p.subtext?.includes('Refill')).length ?? 1;
-                const scriptCount = successOrder?.products.filter(p => p.subtext?.includes('script') || p.subtext?.includes('Refill')).length ?? 0;
-                const hasOtc = otcCount > 0;
-                const hasScript = scriptCount > 0;
-
-                if (hasOtc) {
-                  setCurrentScreen('clicksgo_questionnaire_otc');
-                } else if (hasScript) {
-                  setCurrentScreen('clicksgo_questionnaire_script');
-                } else {
-                  setCurrentScreen('clicksgo_track');
-                }
+                setCurrentScreen('clicksgo_questionnaire');
               }}
               style={{
                 width: '100%',
@@ -1534,16 +1518,17 @@ export default function App() {
   }
 
   // ══════════════════════════════════════════════════════════════════
-  // SCREEN: ClicksGo – Medical Questionnaire (OTC)
+  // SCREEN: ClicksGo – Medical Questionnaire
   // ══════════════════════════════════════════════════════════════════
-  function renderClicksGoQuestionnaireOtc() {
-    const hasScript = successOrder?.products.some(p => p.subtext?.includes('script') || p.subtext?.includes('Refill')) || false;
+  function renderClicksGoQuestionnaire() {
+    const hasOtc = successOrder?.products.some(p => !p.subtext?.includes('script') && !p.subtext?.includes('Refill')) ?? true;
+    const hasScript = successOrder?.products.some(p => p.subtext?.includes('script') || p.subtext?.includes('Refill')) ?? false;
 
     return (
-      <div className="screen-root" style={{ gap: 16, padding: '20px 20px 30px', background: '#fff', minHeight: '100%', display: 'flex', flexDirection: 'column' }}>
+      <div className="screen-root" style={{ gap: 18, padding: '20px 20px 30px', background: '#fff', minHeight: '100%', display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
         
-        {/* Custom Header with Progress Bar and Close button */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 10, marginBottom: 12 }}>
+        {/* Custom Header with Progress Bar / Back button */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 10, borderBottom: '1px solid var(--border)', marginBottom: 8 }}>
           <button className="app-bar__icon-btn" onClick={handleBackNavigation} style={{ padding: 0, margin: 0 }}>
             <ArrowLeft size={20} color="var(--navy)" />
           </button>
@@ -1568,377 +1553,350 @@ export default function App() {
           </button>
         </div>
 
-        {/* Title */}
+        {/* Title & Introduction */}
         <div>
           <h2 style={{ fontSize: 22, fontWeight: 800, color: 'var(--navy)', marginBottom: 12 }}>
-            Medical questionnaire
+            {hasOtc && hasScript ? "Medical questionnaire & Info" : hasScript ? "Your medical information" : "Medical questionnaire"}
           </h2>
           <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.5 }}>
-            Before we can process this OTC order, please answer a few medical questions for the patient. This may be for you or a dependant, and helps our pharmacist confirm the medicine is safe and suitable.
+            {hasOtc 
+              ? "Before we can process this OTC order, please answer a few medical questions for the patient. This may be for you or a dependant, and helps our pharmacist confirm the medicine is safe and suitable."
+              : "Please review and complete your medical information below to help our pharmacist process your script safely."
+            }
           </p>
         </div>
 
-        <div style={{ height: 1, background: 'var(--border)', margin: '4px 0' }} />
+        {/* OTC SECTION */}
+        {hasOtc && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--navy)', borderBottom: '1.5px solid var(--border)', paddingBottom: 4, marginTop: 4 }}>
+              OTC Medication Questionnaire
+            </div>
 
-        {/* Question 1 */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-1)', lineHeight: 1.4 }}>
-            Does your basket contain any medications you have not taken before? *
-          </span>
-          <div style={{ display: 'flex', gap: 12 }}>
-            <button
-              onClick={() => setOtcQ1('Yes')}
-              style={{
-                flex: 1,
-                padding: '12px 0',
-                borderRadius: 10,
-                border: otcQ1 === 'Yes' ? 'none' : '1.5px solid var(--border)',
-                background: otcQ1 === 'Yes' ? 'var(--blue)' : '#fff',
-                color: otcQ1 === 'Yes' ? '#fff' : 'var(--text-1)',
-                fontWeight: 600,
-                fontSize: 14,
-                cursor: 'pointer'
-              }}
-            >
-              Yes
-            </button>
-            <button
-              onClick={() => setOtcQ1('No')}
-              style={{
-                flex: 1,
-                padding: '12px 0',
-                borderRadius: 10,
-                border: otcQ1 === 'No' ? 'none' : '1.5px solid var(--border)',
-                background: otcQ1 === 'No' ? 'var(--blue)' : '#fff',
-                color: otcQ1 === 'No' ? '#fff' : 'var(--text-1)',
-                fontWeight: 600,
-                fontSize: 14,
-                cursor: 'pointer'
-              }}
-            >
-              No
-            </button>
+            {/* Question 1 */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-1)', lineHeight: 1.4 }}>
+                Does your basket contain any medications you have not taken before? *
+              </span>
+              <div style={{ display: 'flex', gap: 12 }}>
+                <button
+                  onClick={() => setOtcQ1('Yes')}
+                  style={{
+                    flex: 1,
+                    padding: '12px 0',
+                    borderRadius: 10,
+                    border: otcQ1 === 'Yes' ? 'none' : '1.5px solid var(--border)',
+                    background: otcQ1 === 'Yes' ? 'var(--blue)' : '#fff',
+                    color: otcQ1 === 'Yes' ? '#fff' : 'var(--text-1)',
+                    fontWeight: 600,
+                    fontSize: 14,
+                    cursor: 'pointer'
+                  }}
+                >
+                  Yes
+                </button>
+                <button
+                  onClick={() => setOtcQ1('No')}
+                  style={{
+                    flex: 1,
+                    padding: '12px 0',
+                    borderRadius: 10,
+                    border: otcQ1 === 'No' ? 'none' : '1.5px solid var(--border)',
+                    background: otcQ1 === 'No' ? 'var(--blue)' : '#fff',
+                    color: otcQ1 === 'No' ? '#fff' : 'var(--text-1)',
+                    fontWeight: 600,
+                    fontSize: 14,
+                    cursor: 'pointer'
+                  }}
+                >
+                  No
+                </button>
+              </div>
+            </div>
+
+            {/* Question 2 */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-1)', lineHeight: 1.4 }}>
+                Do you have any pre-existing conditions or are there any medical conditions we should know about (e.g., High blood pressure, pregnancy, or breastfeeding)? *
+              </span>
+              <div style={{ display: 'flex', gap: 12 }}>
+                <button
+                  onClick={() => setOtcQ2('Yes')}
+                  style={{
+                    flex: 1,
+                    padding: '12px 0',
+                    borderRadius: 10,
+                    border: otcQ2 === 'Yes' ? 'none' : '1.5px solid var(--border)',
+                    background: otcQ2 === 'Yes' ? 'var(--blue)' : '#fff',
+                    color: otcQ2 === 'Yes' ? '#fff' : 'var(--text-1)',
+                    fontWeight: 600,
+                    fontSize: 14,
+                    cursor: 'pointer'
+                  }}
+                >
+                  Yes
+                </button>
+                <button
+                  onClick={() => setOtcQ2('No')}
+                  style={{
+                    flex: 1,
+                    padding: '12px 0',
+                    borderRadius: 10,
+                    border: otcQ2 === 'No' ? 'none' : '1.5px solid var(--border)',
+                    background: otcQ2 === 'No' ? 'var(--blue)' : '#fff',
+                    color: otcQ2 === 'No' ? '#fff' : 'var(--text-1)',
+                    fontWeight: 600,
+                    fontSize: 14,
+                    cursor: 'pointer'
+                  }}
+                >
+                  No
+                </button>
+              </div>
+
+              {otcQ2 === 'Yes' && (
+                <input
+                  type="text"
+                  value={otcQ2Text}
+                  onChange={(e) => setOtcQ2Text(e.target.value)}
+                  placeholder="e.g. High blood pressure, pregnancy, etc."
+                  style={{
+                    width: '100%',
+                    padding: '12px 14px',
+                    borderRadius: 10,
+                    border: '1.5px solid var(--border)',
+                    fontSize: 13,
+                    outline: 'none',
+                    marginTop: 4,
+                    fontFamily: 'Inter, sans-serif'
+                  }}
+                />
+              )}
+            </div>
+
+            {/* Question 3 */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-1)', lineHeight: 1.4 }}>
+                Are you currently taking any other medication? *
+              </span>
+              <div style={{ display: 'flex', gap: 12 }}>
+                <button
+                  onClick={() => setOtcQ3('Yes')}
+                  style={{
+                    flex: 1,
+                    padding: '12px 0',
+                    borderRadius: 10,
+                    border: otcQ3 === 'Yes' ? 'none' : '1.5px solid var(--border)',
+                    background: otcQ3 === 'Yes' ? 'var(--blue)' : '#fff',
+                    color: otcQ3 === 'Yes' ? '#fff' : 'var(--text-1)',
+                    fontWeight: 600,
+                    fontSize: 14,
+                    cursor: 'pointer'
+                  }}
+                >
+                  Yes
+                </button>
+                <button
+                  onClick={() => setOtcQ3('No')}
+                  style={{
+                    flex: 1,
+                    padding: '12px 0',
+                    borderRadius: 10,
+                    border: otcQ3 === 'No' ? 'none' : '1.5px solid var(--border)',
+                    background: otcQ3 === 'No' ? 'var(--blue)' : '#fff',
+                    color: otcQ3 === 'No' ? '#fff' : 'var(--text-1)',
+                    fontWeight: 600,
+                    fontSize: 14,
+                    cursor: 'pointer'
+                  }}
+                >
+                  No
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
+        )}
 
-        <div style={{ height: 1, background: 'var(--border)', margin: '4px 0' }} />
+        {/* SCRIPT SECTION */}
+        {hasScript && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginTop: hasOtc ? 10 : 0 }}>
+            <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--navy)', borderBottom: '1.5px solid var(--border)', paddingBottom: 4 }}>
+              Script Medical Information
+            </div>
 
-        {/* Question 2 */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-1)', lineHeight: 1.4 }}>
-            Do you have any pre-existing conditions or are there any medical conditions we should know about (e.g., High blood pressure, pregnancy, or breastfeeding)? *
-          </span>
-          <div style={{ display: 'flex', gap: 12 }}>
-            <button
-              onClick={() => setOtcQ2('Yes')}
-              style={{
-                flex: 1,
-                padding: '12px 0',
-                borderRadius: 10,
-                border: otcQ2 === 'Yes' ? 'none' : '1.5px solid var(--border)',
-                background: otcQ2 === 'Yes' ? 'var(--blue)' : '#fff',
-                color: otcQ2 === 'Yes' ? '#fff' : 'var(--text-1)',
-                fontWeight: 600,
-                fontSize: 14,
-                cursor: 'pointer'
-              }}
-            >
-              Yes
-            </button>
-            <button
-              onClick={() => setOtcQ2('No')}
-              style={{
-                flex: 1,
-                padding: '12px 0',
-                borderRadius: 10,
-                border: otcQ2 === 'No' ? 'none' : '1.5px solid var(--border)',
-                background: otcQ2 === 'No' ? 'var(--blue)' : '#fff',
-                color: otcQ2 === 'No' ? '#fff' : 'var(--text-1)',
-                fontWeight: 600,
-                fontSize: 14,
-                cursor: 'pointer'
-              }}
-            >
-              No
-            </button>
+            {/* Question 1: Accept Generic substitutions */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-1)' }}>
+                  Do you want to accept generic substitutions for this script?
+                </span>
+                <span style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', color: 'var(--navy)' }} onClick={() => alert("Generic substitutions are cheaper alternatives with the same active ingredients.")}>
+                  <Info size={14} />
+                </span>
+              </div>
+              <div style={{ display: 'flex', gap: 12 }}>
+                <button
+                  onClick={() => setScriptAcceptGeneric('Yes')}
+                  style={{
+                    flex: 1,
+                    padding: '12px 0',
+                    borderRadius: 10,
+                    border: scriptAcceptGeneric === 'Yes' ? 'none' : '1.5px solid var(--border)',
+                    background: scriptAcceptGeneric === 'Yes' ? 'var(--blue)' : '#fff',
+                    color: scriptAcceptGeneric === 'Yes' ? '#fff' : 'var(--text-1)',
+                    fontWeight: 600,
+                    fontSize: 14,
+                    cursor: 'pointer'
+                  }}
+                >
+                  Yes
+                </button>
+                <button
+                  onClick={() => setScriptAcceptGeneric('No')}
+                  style={{
+                    flex: 1,
+                    padding: '12px 0',
+                    borderRadius: 10,
+                    border: scriptAcceptGeneric === 'No' ? 'none' : '1.5px solid var(--border)',
+                    background: scriptAcceptGeneric === 'No' ? 'var(--blue)' : '#fff',
+                    color: scriptAcceptGeneric === 'No' ? '#fff' : 'var(--text-1)',
+                    fontWeight: 600,
+                    fontSize: 14,
+                    cursor: 'pointer'
+                  }}
+                >
+                  No
+                </button>
+              </div>
+            </div>
+
+            {/* Question 2: Allergies */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-1)' }}>
+                Do you have any allergies?
+              </span>
+              <div style={{ position: 'relative' }}>
+                <input
+                  type="text"
+                  value={scriptAllergies}
+                  onChange={(e) => setScriptAllergies(e.target.value)}
+                  placeholder="Add allergies"
+                  style={{
+                    width: '100%',
+                    padding: '12px 40px 12px 14px',
+                    borderRadius: 10,
+                    border: '1.5px solid var(--border)',
+                    fontSize: 13,
+                    outline: 'none',
+                    fontFamily: 'Inter, sans-serif'
+                  }}
+                />
+                <button
+                  style={{
+                    position: 'absolute',
+                    right: 12,
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: 0
+                  }}
+                >
+                  <Plus size={18} color="var(--text-3)" />
+                </button>
+              </div>
+            </div>
+
+            {/* Question 3: Instructions for pharmacist */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-1)' }}>
+                Do you want to add any specific instructions for your pharmacist?
+              </span>
+              <div style={{ position: 'relative' }}>
+                <input
+                  type="text"
+                  value={scriptInstructions}
+                  onChange={(e) => setScriptInstructions(e.target.value)}
+                  placeholder="Add instructions"
+                  style={{
+                    width: '100%',
+                    padding: '12px 40px 12px 14px',
+                    borderRadius: 10,
+                    border: '1.5px solid var(--border)',
+                    fontSize: 13,
+                    outline: 'none',
+                    fontFamily: 'Inter, sans-serif'
+                  }}
+                />
+                <button
+                  style={{
+                    position: 'absolute',
+                    right: 12,
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: 0
+                  }}
+                >
+                  <Plus size={18} color="var(--text-3)" />
+                </button>
+              </div>
+            </div>
+
+            {/* Question 4: Process repeats automatically */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-1)', lineHeight: 1.4 }}>
+                If your script includes repeats, would you like us to automatically process your repeats and notify you when it is ready for collection or delivery?
+              </span>
+              <div style={{ display: 'flex', gap: 12 }}>
+                <button
+                  onClick={() => setScriptAutoRefills('Yes')}
+                  style={{
+                    flex: 1,
+                    padding: '12px 0',
+                    borderRadius: 10,
+                    border: scriptAutoRefills === 'Yes' ? 'none' : '1.5px solid var(--border)',
+                    background: scriptAutoRefills === 'Yes' ? 'var(--blue)' : '#fff',
+                    color: scriptAutoRefills === 'Yes' ? '#fff' : 'var(--text-1)',
+                    fontWeight: 600,
+                    fontSize: 14,
+                    cursor: 'pointer'
+                  }}
+                >
+                  Yes
+                </button>
+                <button
+                  onClick={() => setScriptAutoRefills('No')}
+                  style={{
+                    flex: 1,
+                    padding: '12px 0',
+                    borderRadius: 10,
+                    border: scriptAutoRefills === 'No' ? 'none' : '1.5px solid var(--border)',
+                    background: scriptAutoRefills === 'No' ? 'var(--blue)' : '#fff',
+                    color: scriptAutoRefills === 'No' ? '#fff' : 'var(--text-1)',
+                    fontWeight: 600,
+                    fontSize: 14,
+                    cursor: 'pointer'
+                  }}
+                >
+                  No
+                </button>
+              </div>
+            </div>
           </div>
-
-          {otcQ2 === 'Yes' && (
-            <input
-              type="text"
-              value={otcQ2Text}
-              onChange={(e) => setOtcQ2Text(e.target.value)}
-              placeholder="e.g. High blood pressure, pregnancy, etc."
-              style={{
-                width: '100%',
-                padding: '12px 14px',
-                borderRadius: 10,
-                border: '1.5px solid var(--border)',
-                fontSize: 13,
-                outline: 'none',
-                marginTop: 4,
-                fontFamily: 'Inter, sans-serif'
-              }}
-            />
-          )}
-        </div>
-
-        <div style={{ height: 1, background: 'var(--border)', margin: '4px 0' }} />
-
-        {/* Question 3 */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 20 }}>
-          <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-1)', lineHeight: 1.4 }}>
-            Are you currently taking any other medication? *
-          </span>
-          <div style={{ display: 'flex', gap: 12 }}>
-            <button
-              onClick={() => setOtcQ3('Yes')}
-              style={{
-                flex: 1,
-                padding: '12px 0',
-                borderRadius: 10,
-                border: otcQ3 === 'Yes' ? 'none' : '1.5px solid var(--border)',
-                background: otcQ3 === 'Yes' ? 'var(--blue)' : '#fff',
-                color: otcQ3 === 'Yes' ? '#fff' : 'var(--text-1)',
-                fontWeight: 600,
-                fontSize: 14,
-                cursor: 'pointer'
-              }}
-            >
-              Yes
-            </button>
-            <button
-              onClick={() => setOtcQ3('No')}
-              style={{
-                flex: 1,
-                padding: '12px 0',
-                borderRadius: 10,
-                border: otcQ3 === 'No' ? 'none' : '1.5px solid var(--border)',
-                background: otcQ3 === 'No' ? 'var(--blue)' : '#fff',
-                color: otcQ3 === 'No' ? '#fff' : 'var(--text-1)',
-                fontWeight: 600,
-                fontSize: 14,
-                cursor: 'pointer'
-              }}
-            >
-              No
-            </button>
-          </div>
-        </div>
+        )}
 
         {/* Continue Button */}
-        <div style={{ marginTop: 'auto', paddingTop: 16 }}>
-          <button
-            className="btn-primary"
-            onClick={() => {
-              if (hasScript) {
-                setCurrentScreen('clicksgo_questionnaire_script');
-              } else {
-                setCurrentScreen('clicksgo_track');
-              }
-            }}
-            style={{ width: '100%', borderRadius: 30, padding: '14px 0', fontSize: 15, fontWeight: 700 }}
-          >
-            Continue
-          </button>
-        </div>
-
-      </div>
-    );
-  }
-
-  // ══════════════════════════════════════════════════════════════════
-  // SCREEN: ClicksGo – Your Medical Information (Script)
-  // ══════════════════════════════════════════════════════════════════
-  function renderClicksGoQuestionnaireScript() {
-    return (
-      <div className="screen-root" style={{ gap: 16, padding: '20px 20px 30px', background: '#fff', minHeight: '100%', display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
-        
-        {/* Custom Header with Back Chevron only */}
-        <div style={{ display: 'flex', alignItems: 'center', paddingBottom: 10, marginBottom: 4 }}>
-          <button className="app-bar__icon-btn" onClick={handleBackNavigation} style={{ padding: 0, margin: 0 }}>
-            <ArrowLeft size={20} color="var(--navy)" />
-          </button>
-        </div>
-
-        {/* Title */}
-        <div style={{ marginBottom: 12 }}>
-          <h2 style={{ fontSize: 22, fontWeight: 800, color: 'var(--navy)' }}>
-            Your medical information
-          </h2>
-        </div>
-
-        {/* Question 1: Accept Generic substitutions */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-1)' }}>
-              Do you want to accept generic substitutions for this script?
-            </span>
-            <span style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', color: 'var(--navy)' }} onClick={() => alert("Generic substitutions are cheaper alternatives with the same active ingredients.")}>
-              <Info size={14} />
-            </span>
-          </div>
-          <div style={{ display: 'flex', gap: 12 }}>
-            <button
-              onClick={() => setScriptAcceptGeneric('Yes')}
-              style={{
-                flex: 1,
-                padding: '12px 0',
-                borderRadius: 10,
-                border: scriptAcceptGeneric === 'Yes' ? 'none' : '1.5px solid var(--border)',
-                background: scriptAcceptGeneric === 'Yes' ? 'var(--blue)' : '#fff',
-                color: scriptAcceptGeneric === 'Yes' ? '#fff' : 'var(--text-1)',
-                fontWeight: 600,
-                fontSize: 14,
-                cursor: 'pointer'
-              }}
-            >
-              Yes
-            </button>
-            <button
-              onClick={() => setScriptAcceptGeneric('No')}
-              style={{
-                flex: 1,
-                padding: '12px 0',
-                borderRadius: 10,
-                border: scriptAcceptGeneric === 'No' ? 'none' : '1.5px solid var(--border)',
-                background: scriptAcceptGeneric === 'No' ? 'var(--blue)' : '#fff',
-                color: scriptAcceptGeneric === 'No' ? '#fff' : 'var(--text-1)',
-                fontWeight: 600,
-                fontSize: 14,
-                cursor: 'pointer'
-              }}
-            >
-              No
-            </button>
-          </div>
-        </div>
-
-        {/* Question 2: Allergies */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-1)' }}>
-            Do you have any allergies?
-          </span>
-          <div style={{ position: 'relative' }}>
-            <input
-              type="text"
-              value={scriptAllergies}
-              onChange={(e) => setScriptAllergies(e.target.value)}
-              placeholder="Add allergies"
-              style={{
-                width: '100%',
-                padding: '12px 40px 12px 14px',
-                borderRadius: 10,
-                border: '1.5px solid var(--border)',
-                fontSize: 13,
-                outline: 'none',
-                fontFamily: 'Inter, sans-serif'
-              }}
-            />
-            <button
-              style={{
-                position: 'absolute',
-                right: 12,
-                top: '50%',
-                transform: 'translateY(-50%)',
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: 0
-              }}
-            >
-              <Plus size={18} color="var(--text-3)" />
-            </button>
-          </div>
-        </div>
-
-        {/* Question 3: Instructions for pharmacist */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-1)' }}>
-            Do you want to add any specific instructions for your pharmacist?
-          </span>
-          <div style={{ position: 'relative' }}>
-            <input
-              type="text"
-              value={scriptInstructions}
-              onChange={(e) => setScriptInstructions(e.target.value)}
-              placeholder="Add instructions"
-              style={{
-                width: '100%',
-                padding: '12px 40px 12px 14px',
-                borderRadius: 10,
-                border: '1.5px solid var(--border)',
-                fontSize: 13,
-                outline: 'none',
-                fontFamily: 'Inter, sans-serif'
-              }}
-            />
-            <button
-              style={{
-                position: 'absolute',
-                right: 12,
-                top: '50%',
-                transform: 'translateY(-50%)',
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: 0
-              }}
-            >
-              <Plus size={18} color="var(--text-3)" />
-            </button>
-          </div>
-        </div>
-
-        {/* Question 4: Process repeats automatically */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 20 }}>
-          <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-1)', lineHeight: 1.4 }}>
-            If your script includes repeats, would you like us to automatically process your repeats and notify you when it is ready for collection or delivery?
-          </span>
-          <div style={{ display: 'flex', gap: 12 }}>
-            <button
-              onClick={() => setScriptAutoRefills('Yes')}
-              style={{
-                flex: 1,
-                padding: '12px 0',
-                borderRadius: 10,
-                border: scriptAutoRefills === 'Yes' ? 'none' : '1.5px solid var(--border)',
-                background: scriptAutoRefills === 'Yes' ? 'var(--blue)' : '#fff',
-                color: scriptAutoRefills === 'Yes' ? '#fff' : 'var(--text-1)',
-                fontWeight: 600,
-                fontSize: 14,
-                cursor: 'pointer'
-              }}
-            >
-              Yes
-            </button>
-            <button
-              onClick={() => setScriptAutoRefills('No')}
-              style={{
-                flex: 1,
-                padding: '12px 0',
-                borderRadius: 10,
-                border: scriptAutoRefills === 'No' ? 'none' : '1.5px solid var(--border)',
-                background: scriptAutoRefills === 'No' ? 'var(--blue)' : '#fff',
-                color: scriptAutoRefills === 'No' ? '#fff' : 'var(--text-1)',
-                fontWeight: 600,
-                fontSize: 14,
-                cursor: 'pointer'
-              }}
-            >
-              No
-            </button>
-          </div>
-        </div>
-
-        {/* Continue Button */}
-        <div style={{ marginTop: 'auto', paddingTop: 16 }}>
+        <div style={{ marginTop: 'auto', paddingTop: 20 }}>
           <button
             className="btn-primary"
             onClick={() => {
@@ -2494,11 +2452,8 @@ export default function App() {
         <button onClick={() => runDemoFlow('clicksgo_recipient')} className={`demo-btn ${currentScreen === 'clicksgo_recipient' ? 'active' : ''}`}>
           👥 Step 4.5: Who is script for?
         </button>
-        <button onClick={() => runDemoFlow('clicksgo_questionnaire_otc')} className={`demo-btn ${currentScreen === 'clicksgo_questionnaire_otc' ? 'active' : ''}`}>
-          📋 Step 4.6: Medical Questionnaire (OTC)
-        </button>
-        <button onClick={() => runDemoFlow('clicksgo_questionnaire_script')} className={`demo-btn ${currentScreen === 'clicksgo_questionnaire_script' ? 'active' : ''}`}>
-          📋 Step 4.7: Medical Information (Script)
+        <button onClick={() => runDemoFlow('clicksgo_questionnaire')} className={`demo-btn ${currentScreen === 'clicksgo_questionnaire' ? 'active' : ''}`}>
+          📋 Step 4.6: Questionnaire
         </button>
         <button onClick={() => runDemoFlow('clicksgo_track')} className={`demo-btn ${currentScreen === 'clicksgo_track' ? 'active' : ''}`}>
           🚴 Step 5: Track My Order
@@ -2515,7 +2470,7 @@ export default function App() {
       <div className="app-viewport-wrapper">
         {renderHeader()}
         <div className="app-screen-content"
-          style={{ backgroundColor: (!isLoggedIn || ['clicksgo_recipient', 'clicksgo_questionnaire_otc', 'clicksgo_questionnaire_script'].includes(currentScreen)) ? '#ffffff' : 'var(--bg)' }}>
+          style={{ backgroundColor: (!isLoggedIn || ['clicksgo_recipient', 'clicksgo_questionnaire'].includes(currentScreen)) ? '#ffffff' : 'var(--bg)' }}>
           {renderActiveScreen()}
         </div>
         {renderBottomNav()}
