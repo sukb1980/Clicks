@@ -223,6 +223,8 @@ export default function App() {
       setCurrentScreen('clicksgo_recipient');
     } else if (flowName === 'clicksgo_questionnaire') {
       setCurrentScreen('clicksgo_questionnaire');
+    } else if (flowName === 'clicksgo_medical_aid') {
+      setCurrentScreen('clicksgo_medical_aid');
     } else if (flowName === 'clicksgo_track') {
       setCurrentScreen('clicksgo_track');
     } else if (flowName === 'home') {
@@ -323,6 +325,7 @@ export default function App() {
       clicksgo_confirm: 'clicksgo_review',
       clicksgo_recipient: 'clicksgo_confirm',
       clicksgo_questionnaire: 'clicksgo_recipient',
+      clicksgo_medical_aid: 'clicksgo_questionnaire',
       clicksgo_track: 'clicksgo_home',
       home_dashboard: 'clicksgo_home',
       order_history: 'home_dashboard',
@@ -337,7 +340,7 @@ export default function App() {
   function renderHeader() {
     if (currentScreen === 'login_email' || currentScreen === 'login_password') return null;
     if (currentScreen === 'payu_form' || currentScreen === 'payment_cancelled') return null;
-    if (currentScreen === 'clicksgo_questionnaire') return null;
+    if (currentScreen === 'clicksgo_questionnaire' || currentScreen === 'clicksgo_medical_aid') return null;
     if (currentScreen === 'clicksgo_recipient') {
       return (
         <div className="app-bar" style={{ borderBottom: 'none', background: '#fff', paddingBottom: 0 }}>
@@ -402,7 +405,7 @@ export default function App() {
 
   // ─── BOTTOM NAV ───────────────────────────────────────────────────────
   function renderBottomNav() {
-    if (['login_email', 'login_password', 'payu_form', 'payment_cancelled', 'clicksgo_recipient', 'clicksgo_questionnaire'].includes(currentScreen)) return null;
+    if (['login_email', 'login_password', 'payu_form', 'payment_cancelled', 'clicksgo_recipient', 'clicksgo_questionnaire', 'clicksgo_medical_aid'].includes(currentScreen)) return null;
 
     const tabs = [
       { id: 'MyClicks', label: 'MyClicks', icon: <User />, screen: 'clicksgo_home' },
@@ -444,6 +447,7 @@ export default function App() {
       clicksgo_confirm: renderClicksGoConfirm,
       clicksgo_recipient: renderClicksGoRecipient,
       clicksgo_questionnaire: renderClicksGoQuestionnaire,
+      clicksgo_medical_aid: renderClicksGoMedicalAid,
       clicksgo_track: renderClicksGoTrack,
       home_dashboard: renderHomeDashboard,
       my_account: renderMyAccountScreen,
@@ -1900,11 +1904,113 @@ export default function App() {
           <button
             className="btn-primary"
             onClick={() => {
-              setCurrentScreen('clicksgo_track');
+              setCurrentScreen('clicksgo_medical_aid');
             }}
             style={{ width: '100%', borderRadius: 30, padding: '14px 0', fontSize: 15, fontWeight: 700 }}
           >
             Continue
+          </button>
+        </div>
+
+      </div>
+    );
+  }
+
+  // ══════════════════════════════════════════════════════════════════
+  // SCREEN: ClicksGo – Claim Medical Aid
+  // ══════════════════════════════════════════════════════════════════
+  function renderClicksGoMedicalAid() {
+    return (
+      <div className="screen-root" style={{ gap: 18, padding: '20px 20px 30px', background: '#fff', minHeight: '100%', display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
+        
+        {/* Custom Header with Progress Bar / Back button */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 10, borderBottom: '1px solid var(--border)', marginBottom: 8 }}>
+          <button className="app-bar__icon-btn" onClick={handleBackNavigation} style={{ padding: 0, margin: 0 }}>
+            <ArrowLeft size={20} color="var(--navy)" />
+          </button>
+          
+          {/* Progress bar slots (2 segments, both green) */}
+          <div style={{ display: 'flex', gap: 6, flex: 1, justifyContent: 'center', maxWidth: 100 }}>
+            {[1, 2].map(slot => (
+              <div
+                key={slot}
+                style={{
+                  height: 4,
+                  flex: 1,
+                  borderRadius: 2,
+                  background: '#7cb342'
+                }}
+              />
+            ))}
+          </div>
+
+          {/* Empty spacer to center the progress bar */}
+          <div style={{ width: 20 }} />
+        </div>
+
+        {/* Title */}
+        <div style={{ marginTop: 8, marginBottom: 12 }}>
+          <h2 style={{ fontSize: 22, fontWeight: 800, color: 'var(--navy)', lineHeight: 1.3 }}>
+            Do you want to claim from this medical aid for this medication?
+          </h2>
+        </div>
+
+        {/* Medical Aid Card */}
+        <div style={{
+          background: '#eff1f6',
+          borderRadius: 12,
+          padding: '20px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          border: '1px solid #dce1eb'
+        }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, textAlign: 'left' }}>
+            <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--navy)' }}>Green</div>
+            <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--navy)' }}>PR - NAME</div>
+            <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--navy)' }}>PR</div>
+            <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--navy)' }}>0</div>
+          </div>
+          <button style={{
+            background: 'none',
+            border: 'none',
+            fontSize: 14,
+            fontWeight: 700,
+            color: 'var(--navy)',
+            cursor: 'pointer',
+            padding: 0
+          }} onClick={() => alert("Edit medical aid")}>
+            Edit
+          </button>
+        </div>
+
+        {/* Action Buttons */}
+        <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: 20, paddingTop: 30, alignItems: 'center' }}>
+          <button
+            className="btn-primary"
+            onClick={() => {
+              setCurrentScreen('clicksgo_track');
+            }}
+            style={{ width: '100%', borderRadius: 30, padding: '14px 0', fontSize: 15, fontWeight: 700 }}
+          >
+            Yes, claim from medical aid
+          </button>
+          
+          <button
+            onClick={() => {
+              setCurrentScreen('clicksgo_track');
+            }}
+            style={{
+              background: 'none',
+              border: 'none',
+              fontSize: 15,
+              fontWeight: 700,
+              color: 'var(--navy)',
+              cursor: 'pointer',
+              textDecoration: 'none'
+            }}
+          >
+            No, I will pay later
           </button>
         </div>
 
@@ -2455,6 +2561,9 @@ export default function App() {
         <button onClick={() => runDemoFlow('clicksgo_questionnaire')} className={`demo-btn ${currentScreen === 'clicksgo_questionnaire' ? 'active' : ''}`}>
           📋 Step 4.6: Questionnaire
         </button>
+        <button onClick={() => runDemoFlow('clicksgo_medical_aid')} className={`demo-btn ${currentScreen === 'clicksgo_medical_aid' ? 'active' : ''}`}>
+          💳 Step 4.7: Claim Medical Aid
+        </button>
         <button onClick={() => runDemoFlow('clicksgo_track')} className={`demo-btn ${currentScreen === 'clicksgo_track' ? 'active' : ''}`}>
           🚴 Step 5: Track My Order
         </button>
@@ -2470,7 +2579,7 @@ export default function App() {
       <div className="app-viewport-wrapper">
         {renderHeader()}
         <div className="app-screen-content"
-          style={{ backgroundColor: (!isLoggedIn || ['clicksgo_recipient', 'clicksgo_questionnaire'].includes(currentScreen)) ? '#ffffff' : 'var(--bg)' }}>
+          style={{ backgroundColor: (!isLoggedIn || ['clicksgo_recipient', 'clicksgo_questionnaire', 'clicksgo_medical_aid'].includes(currentScreen)) ? '#ffffff' : 'var(--bg)' }}>
           {renderActiveScreen()}
         </div>
         {renderBottomNav()}
