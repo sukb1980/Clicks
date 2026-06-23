@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/Clicks/favicon.svg" />
+    <link rel="manifest" href="/Clicks/manifest.json" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#004b87" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Clicks" />
+    <meta name="description" content="Clicks Pharmacy app - shop, manage scripts and track your health." />
+    <link rel="apple-touch-icon" href="/Clicks/icon-192.png" />
+    <title>Clicks Pharmacy</title>
+    <script type="module" crossorigin src="/Clicks/assets/index-DlaXFsrm.js"></script>
+    <link rel="stylesheet" crossorigin href="/Clicks/assets/index-B-jSi9pG.css">
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/Clicks/sw.js', { scope: '/Clicks/' });
+        });
+      }
+    </script>
+  </body>
+</html>
