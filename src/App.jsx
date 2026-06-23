@@ -2446,54 +2446,6 @@ export default function App() {
             </svg>
           </div>
         )
-      },
-      {
-        id: 'eft_pro',
-        label: 'EFT Pro',
-        logos: (
-          <div style={{ display: 'flex', gap: 3 }}>
-            {/* FNB */}
-            <svg width="20" height="16" viewBox="0 0 24 20" style={{ borderRadius: 2 }}>
-              <rect width="24" height="20" rx="3" fill="#FF8200"/>
-              <circle cx="12" cy="10" r="5" fill="#00A9E0"/>
-            </svg>
-            {/* Nedbank */}
-            <svg width="20" height="16" viewBox="0 0 24 20" style={{ borderRadius: 2 }}>
-              <rect width="24" height="20" rx="3" fill="#005A36"/>
-              <text x="7" y="14" fill="#FFF" fontSize="10" fontWeight="bold">N</text>
-            </svg>
-            {/* Std Bank */}
-            <svg width="20" height="16" viewBox="0 0 24 20" style={{ borderRadius: 2 }}>
-              <rect width="24" height="20" rx="3" fill="#0033A0"/>
-              <rect x="9" y="4" width="6" height="12" fill="#FFF"/>
-            </svg>
-            {/* Capitec */}
-            <svg width="20" height="16" viewBox="0 0 24 20" style={{ borderRadius: 2 }}>
-              <rect width="24" height="20" rx="3" fill="#009A9E"/>
-              <circle cx="12" cy="10" r="4" fill="#ED1C24"/>
-            </svg>
-          </div>
-        )
-      },
-      {
-        id: 'visa_checkout',
-        label: 'Visa Checkout',
-        logos: (
-          <svg width="32" height="18" viewBox="0 0 30 20" style={{ borderRadius: 2 }}>
-            <rect width="30" height="20" rx="3" fill="#1A1F71"/>
-            <text x="3" y="14" fill="#FFF" fontSize="9" fontWeight="bold" fontStyle="italic">VISA</text>
-          </svg>
-        )
-      },
-      {
-        id: 'mobicred',
-        label: 'Mobicred',
-        logos: <span style={{ fontSize: 9, fontWeight: 800, color: '#00B4E5', letterSpacing: '-0.2px' }}>mobicred</span>
-      },
-      {
-        id: 'rcs',
-        label: 'RCS',
-        logos: <span style={{ fontSize: 10, fontWeight: 900, color: '#FF5A00' }}>RCS</span>
       }
     ];
 
