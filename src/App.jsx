@@ -70,6 +70,16 @@ export default function App() {
   });
   const [successOrder, setSuccessOrder] = useState(null);
   const [locationOverlay, setLocationOverlay] = useState(false);
+
+  // Payment states
+  const [paymentMethod, setPaymentMethod] = useState('credit_card');
+  const [payuCardNumber, setPayuCardNumber] = useState('');
+  const [payuCardName, setPayuCardName] = useState('');
+  const [payuExpiryMM, setPayuExpiryMM] = useState('');
+  const [payuExpiryYY, setPayuExpiryYY] = useState('');
+  const [payuCvv, setPayuCvv] = useState('');
+  const [isPaymentRedirecting, setIsPaymentRedirecting] = useState(false);
+  const [isPaymentProcessing, setIsPaymentProcessing] = useState(false);
   const [deliveryType, setDeliveryType] = useState('Delivery');
   const [selectedStore, setSelectedStore] = useState(INITIAL_STORES[0]);
   const [selectedRecipient, setSelectedRecipient] = useState(INITIAL_DEPENDENTS[0]);
@@ -139,6 +149,38 @@ export default function App() {
     saveState(db);
     setCartItems(db.cart || []);
   }, [db]);
+
+  // Payment redirect timeout (1.5 seconds)
+  useEffect(() => {
+    if (isPaymentRedirecting) {
+      const timer = setTimeout(() => {
+        setIsPaymentRedirecting(false);
+        setCurrentScreen('payu_form');
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [isPaymentRedirecting]);
+
+  // Payment processing timeout (2 seconds)
+  useEffect(() => {
+    if (isPaymentProcessing) {
+      const timer = setTimeout(() => {
+        setIsPaymentProcessing(false);
+        setCurrentScreen('clicksgo_track');
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [isPaymentProcessing]);
+
+  // Transaction cancelled auto-redirect (3 seconds)
+  useEffect(() => {
+    if (currentScreen === 'payment_cancelled') {
+      const timer = setTimeout(() => {
+        setCurrentScreen('clicksgo_payment_method');
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [currentScreen]);
 
   const updateDbState = (updates) => {
     setDb(prev => {
@@ -225,6 +267,12 @@ export default function App() {
       setCurrentScreen('clicksgo_questionnaire');
     } else if (flowName === 'clicksgo_medical_aid') {
       setCurrentScreen('clicksgo_medical_aid');
+    } else if (flowName === 'clicksgo_payment_method') {
+      setCurrentScreen('clicksgo_payment_method');
+    } else if (flowName === 'payu_form') {
+      setCurrentScreen('payu_form');
+    } else if (flowName === 'payment_cancelled') {
+      setCurrentScreen('payment_cancelled');
     } else if (flowName === 'clicksgo_track') {
       setCurrentScreen('clicksgo_track');
     } else if (flowName === 'home') {
@@ -326,6 +374,9 @@ export default function App() {
       clicksgo_recipient: 'clicksgo_confirm',
       clicksgo_questionnaire: 'clicksgo_recipient',
       clicksgo_medical_aid: 'clicksgo_questionnaire',
+      clicksgo_payment_method: 'clicksgo_medical_aid',
+      payu_form: 'clicksgo_payment_method',
+      payment_cancelled: 'clicksgo_payment_method',
       clicksgo_track: 'clicksgo_home',
       home_dashboard: 'clicksgo_home',
       order_history: 'home_dashboard',
@@ -340,7 +391,7 @@ export default function App() {
   function renderHeader() {
     if (currentScreen === 'login_email' || currentScreen === 'login_password') return null;
     if (currentScreen === 'payu_form' || currentScreen === 'payment_cancelled') return null;
-    if (currentScreen === 'clicksgo_questionnaire' || currentScreen === 'clicksgo_medical_aid') return null;
+    if (currentScreen === 'clicksgo_questionnaire' || currentScreen === 'clicksgo_medical_aid' || currentScreen === 'clicksgo_payment_method') return null;
     if (currentScreen === 'clicksgo_recipient') {
       return (
         <div className="app-bar" style={{ borderBottom: 'none', background: '#fff', paddingBottom: 0 }}>
@@ -405,7 +456,7 @@ export default function App() {
 
   // ─── BOTTOM NAV ───────────────────────────────────────────────────────
   function renderBottomNav() {
-    if (['login_email', 'login_password', 'payu_form', 'payment_cancelled', 'clicksgo_recipient', 'clicksgo_questionnaire', 'clicksgo_medical_aid'].includes(currentScreen)) return null;
+    if (['login_email', 'login_password', 'payu_form', 'payment_cancelled', 'clicksgo_recipient', 'clicksgo_questionnaire', 'clicksgo_medical_aid', 'clicksgo_payment_method'].includes(currentScreen)) return null;
 
     const tabs = [
       { id: 'MyClicks', label: 'MyClicks', icon: <User />, screen: 'clicksgo_home' },
@@ -437,6 +488,8 @@ export default function App() {
   // ─── SCREEN ROUTER ─────────────────────────────────────────────────────
   function renderActiveScreen() {
     if (!isLoggedIn) return renderLoginFlow();
+    if (isPaymentRedirecting) return renderPaymentRedirectScreen();
+    if (isPaymentProcessing) return renderPaymentProcessingScreen();
 
     const screenMap = {
       clicksgo_home: renderClicksGoHome,
@@ -448,6 +501,9 @@ export default function App() {
       clicksgo_recipient: renderClicksGoRecipient,
       clicksgo_questionnaire: renderClicksGoQuestionnaire,
       clicksgo_medical_aid: renderClicksGoMedicalAid,
+      clicksgo_payment_method: renderClicksGoPaymentMethod,
+      payu_form: renderPayUForm,
+      payment_cancelled: renderPaymentCancelled,
       clicksgo_track: renderClicksGoTrack,
       home_dashboard: renderHomeDashboard,
       my_account: renderMyAccountScreen,
@@ -1989,7 +2045,7 @@ export default function App() {
           <button
             className="btn-primary"
             onClick={() => {
-              setCurrentScreen('clicksgo_track');
+              setCurrentScreen('clicksgo_payment_method');
             }}
             style={{ width: '100%', borderRadius: 30, padding: '14px 0', fontSize: 15, fontWeight: 700 }}
           >
@@ -1998,7 +2054,7 @@ export default function App() {
           
           <button
             onClick={() => {
-              setCurrentScreen('clicksgo_track');
+              setCurrentScreen('clicksgo_payment_method');
             }}
             style={{
               background: 'none',
@@ -2014,6 +2070,586 @@ export default function App() {
           </button>
         </div>
 
+      </div>
+    );
+  }
+
+  // ══════════════════════════════════════════════════════════════════
+  // SCREEN: ClicksGo – How would you like to pay?
+  // ══════════════════════════════════════════════════════════════════
+  function renderClicksGoPaymentMethod() {
+    const total = successOrder?.total || cartItems.reduce((a, i) => a + i.price * i.quantity, 0) + scriptCartItems.reduce((a, i) => a + i.price * i.quantity, 0) || 1059.98;
+    const vat = total * (15 / 115);
+
+    const paymentOptions = [
+      {
+        id: 'credit_card',
+        label: 'Credit card',
+        logos: (
+          <div style={{ display: 'flex', gap: 4 }}>
+            {/* Visa */}
+            <svg width="28" height="18" viewBox="0 0 30 20" style={{ borderRadius: 2 }}>
+              <rect width="30" height="20" rx="3" fill="#1A1F71"/>
+              <text x="3" y="14" fill="#FFF" fontSize="9" fontWeight="bold" fontStyle="italic">VISA</text>
+            </svg>
+            {/* Mastercard */}
+            <svg width="28" height="18" viewBox="0 0 30 20" style={{ borderRadius: 2 }}>
+              <rect width="30" height="20" rx="3" fill="#222"/>
+              <circle cx="11" cy="10" r="6" fill="#EB001B" opacity="0.9"/>
+              <circle cx="19" cy="10" r="6" fill="#F79E1B" opacity="0.9"/>
+            </svg>
+            {/* Amex */}
+            <svg width="28" height="18" viewBox="0 0 30 20" style={{ borderRadius: 2 }}>
+              <rect width="30" height="20" rx="3" fill="#01A6E5"/>
+              <text x="2" y="13" fill="#FFF" fontSize="8" fontWeight="900">AMEX</text>
+            </svg>
+          </div>
+        )
+      },
+      {
+        id: 'eft_pro',
+        label: 'EFT Pro',
+        logos: (
+          <div style={{ display: 'flex', gap: 3 }}>
+            {/* FNB */}
+            <svg width="20" height="16" viewBox="0 0 24 20" style={{ borderRadius: 2 }}>
+              <rect width="24" height="20" rx="3" fill="#FF8200"/>
+              <circle cx="12" cy="10" r="5" fill="#00A9E0"/>
+            </svg>
+            {/* Nedbank */}
+            <svg width="20" height="16" viewBox="0 0 24 20" style={{ borderRadius: 2 }}>
+              <rect width="24" height="20" rx="3" fill="#005A36"/>
+              <text x="7" y="14" fill="#FFF" fontSize="10" fontWeight="bold">N</text>
+            </svg>
+            {/* Std Bank */}
+            <svg width="20" height="16" viewBox="0 0 24 20" style={{ borderRadius: 2 }}>
+              <rect width="24" height="20" rx="3" fill="#0033A0"/>
+              <rect x="9" y="4" width="6" height="12" fill="#FFF"/>
+            </svg>
+            {/* Capitec */}
+            <svg width="20" height="16" viewBox="0 0 24 20" style={{ borderRadius: 2 }}>
+              <rect width="24" height="20" rx="3" fill="#009A9E"/>
+              <circle cx="12" cy="10" r="4" fill="#ED1C24"/>
+            </svg>
+          </div>
+        )
+      },
+      {
+        id: 'visa_checkout',
+        label: 'Visa Checkout',
+        logos: (
+          <svg width="32" height="18" viewBox="0 0 30 20" style={{ borderRadius: 2 }}>
+            <rect width="30" height="20" rx="3" fill="#1A1F71"/>
+            <text x="3" y="14" fill="#FFF" fontSize="9" fontWeight="bold" fontStyle="italic">VISA</text>
+          </svg>
+        )
+      },
+      {
+        id: 'mobicred',
+        label: 'Mobicred',
+        logos: <span style={{ fontSize: 9, fontWeight: 800, color: '#00B4E5', letterSpacing: '-0.2px' }}>mobicred</span>
+      },
+      {
+        id: 'rcs',
+        label: 'RCS',
+        logos: <span style={{ fontSize: 10, fontWeight: 900, color: '#FF5A00' }}>RCS</span>
+      }
+    ];
+
+    return (
+      <div className="screen-root" style={{ gap: 14, padding: '20px 20px 30px', background: '#fff', minHeight: '100%', display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
+        
+        {/* Custom Header with Progress Bar */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 10, borderBottom: '1px solid var(--border)', marginBottom: 4 }}>
+          <button className="app-bar__icon-btn" onClick={handleBackNavigation} style={{ padding: 0, margin: 0 }}>
+            <ArrowLeft size={20} color="var(--navy)" />
+          </button>
+          
+          <div style={{ display: 'flex', gap: 6, flex: 1, justifyContent: 'center', maxWidth: 100 }}>
+            {[1, 2, 3].map(slot => (
+              <div
+                key={slot}
+                style={{
+                  height: 4,
+                  flex: 1,
+                  borderRadius: 2,
+                  background: '#7cb342'
+                }}
+              />
+            ))}
+          </div>
+
+          <div style={{ width: 20 }} />
+        </div>
+
+        {/* Title */}
+        <div>
+          <h2 style={{ fontSize: 22, fontWeight: 800, color: 'var(--navy)', marginBottom: 12 }}>
+            How would you like to pay?
+          </h2>
+        </div>
+
+        {/* Selection Options */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {paymentOptions.map(opt => {
+            const isSelected = paymentMethod === opt.id;
+            return (
+              <div
+                key={opt.id}
+                onClick={() => setPaymentMethod(opt.id)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '16px',
+                  borderRadius: 12,
+                  border: isSelected ? '1.5px solid var(--blue)' : '1px solid var(--border)',
+                  background: '#ffffff',
+                  cursor: 'pointer',
+                  boxShadow: isSelected ? '0 4px 12px rgba(0,87,184,0.06)' : '0 2px 6px rgba(0,0,0,0.01)',
+                  transition: 'all 0.15s ease'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div style={{
+                    width: 20,
+                    height: 20,
+                    borderRadius: '50%',
+                    border: isSelected ? '5px solid var(--blue)' : '2px solid var(--text-3)',
+                    background: '#fff',
+                    transition: 'all 0.15s ease'
+                  }} />
+                  <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--navy)' }}>{opt.label}</span>
+                </div>
+                <div>
+                  {opt.logos}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Pricing Summary */}
+        <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 8, borderTop: '1px solid var(--border)', paddingTop: 16 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: 'var(--text-2)' }}>
+            <span>Promo code used</span>
+            <span style={{ fontWeight: 600 }}>- R0.00</span>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: 'var(--text-2)' }}>
+            <span>Promotional discounts</span>
+            <span style={{ fontWeight: 600 }}>- R0.00</span>
+          </div>
+          
+          {/* CashBack and eBucks row */}
+          <div style={{ display: 'flex', gap: 10, margin: '4px 0' }}>
+            <button disabled style={{
+              flex: 1,
+              padding: '8px 12px',
+              borderRadius: 20,
+              border: 'none',
+              background: '#f1f3f9',
+              color: 'var(--text-3)',
+              fontSize: 11,
+              fontWeight: 700,
+              cursor: 'not-allowed'
+            }}>
+              R0.00 CashBack available
+            </button>
+            <button style={{
+              flex: 1,
+              padding: '8px 12px',
+              borderRadius: 20,
+              border: 'none',
+              background: '#FF5A00',
+              color: '#fff',
+              fontSize: 11,
+              fontWeight: 700,
+              cursor: 'pointer'
+            }} onClick={() => alert("Use eBucks discount applied (demo)")}>
+              Use eBucks
+            </button>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: 'var(--text-2)' }}>
+            <span>Delivery fee</span>
+            <span style={{ fontWeight: 600, color: 'var(--green)' }}>R0.00</span>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginTop: 4 }}>
+            <div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: 'var(--navy)' }}>Total</div>
+              <div style={{ fontSize: 11, color: 'var(--text-3)' }}>Total includes R{vat.toFixed(2)} VAT</div>
+            </div>
+            <span style={{ fontSize: 20, fontWeight: 900, color: 'var(--navy)' }}>R{total.toFixed(2)}</span>
+          </div>
+        </div>
+
+        {/* Continue Button */}
+        <div style={{ marginTop: 'auto', paddingTop: 20 }}>
+          <button
+            className="btn-primary"
+            onClick={() => {
+              setIsPaymentRedirecting(true);
+            }}
+            style={{ width: '100%', borderRadius: 30, padding: '14px 0', fontSize: 15, fontWeight: 700 }}
+          >
+            {paymentMethod === 'credit_card' ? 'Continue with credit card' : `Continue with ${paymentOptions.find(o => o.id === paymentMethod)?.label}`}
+          </button>
+        </div>
+
+      </div>
+    );
+  }
+
+  // ══════════════════════════════════════════════════════════════════
+  // SCREEN: ClicksGo – PayU Form
+  // ══════════════════════════════════════════════════════════════════
+  function renderPayUForm() {
+    const total = successOrder?.total || cartItems.reduce((a, i) => a + i.price * i.quantity, 0) + scriptCartItems.reduce((a, i) => a + i.price * i.quantity, 0) || 1059.98;
+
+    return (
+      <div className="screen-root" style={{ gap: 14, padding: '16px 16px 24px', background: '#f8f9fc', minHeight: '100%', display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
+        
+        {/* PayU Logo Header */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#fff', margin: '-16px -16px 10px', padding: '12px 16px', borderBottom: '1px solid #e2e8f0' }}>
+          {/* Clicks logo simple */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <span style={{ fontStyle: 'italic', fontWeight: 900, fontSize: 16, color: 'var(--navy)' }}>CLICKS</span>
+            <span style={{ fontStyle: 'italic', fontWeight: 900, fontSize: 16, color: 'var(--green)' }}>+</span>
+          </div>
+          {/* PayU logo */}
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 2 }}>
+            <span style={{ fontSize: 9, color: 'var(--text-3)', fontWeight: 600 }}>SECURE PAYMENTS BY</span>
+            <span style={{ fontSize: 14, fontWeight: 900, color: '#8cc63f' }}>Pay<span style={{ color: '#002B5C' }}>U</span></span>
+          </div>
+        </div>
+
+        {/* Cancellation guidance */}
+        <div style={{
+          background: '#fff',
+          borderRadius: 8,
+          border: '1.5px solid #e2e8f0',
+          padding: '14px',
+          textAlign: 'center',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.02)'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 4, marginBottom: 6 }}>
+            <span style={{ fontStyle: 'italic', fontWeight: 900, fontSize: 13, color: 'var(--navy)' }}>CLICKS</span>
+            <span style={{ fontStyle: 'italic', fontWeight: 900, fontSize: 13, color: 'var(--green)' }}>+</span>
+            <span style={{ fontSize: 12, fontStyle: 'italic', color: 'var(--blue)', fontWeight: 600, marginLeft: 2 }}>feel good pay less</span>
+          </div>
+          <p style={{ fontSize: 11, color: 'var(--text-2)', lineHeight: 1.4 }}>
+            To return to the checkout page, please press cancel.<br/>
+            <strong>Do not use the browser back button.</strong>
+          </p>
+        </div>
+
+        {/* Amount Due strip */}
+        <div style={{
+          background: '#0057b8',
+          borderRadius: 8,
+          padding: '12px 16px',
+          color: '#fff',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          fontWeight: 700
+        }}>
+          <span style={{ fontSize: 13 }}>Amount Due</span>
+          <span style={{ fontSize: 16 }}>R{total.toFixed(2)}</span>
+        </div>
+
+        {/* Payment entry card */}
+        <div style={{
+          background: '#fff',
+          borderRadius: 10,
+          border: '1.5px solid #e2e8f0',
+          padding: '16px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 12
+        }}>
+          {/* Card radio title */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1.5px solid #edf2f7', paddingBottom: 10, marginBottom: 4 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ width: 16, height: 16, borderRadius: '50%', border: '5px solid var(--blue)', background: '#fff' }} />
+              <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--navy)' }}>Card</span>
+            </div>
+            <div style={{ display: 'flex', gap: 3 }}>
+              {/* Mastercard */}
+              <svg width="24" height="15" viewBox="0 0 30 20" style={{ borderRadius: 1.5 }}>
+                <rect width="30" height="20" rx="3" fill="#222"/>
+                <circle cx="11" cy="10" r="6" fill="#EB001B" opacity="0.9"/>
+                <circle cx="19" cy="10" r="6" fill="#F79E1B" opacity="0.9"/>
+              </svg>
+              {/* Visa */}
+              <svg width="24" height="15" viewBox="0 0 30 20" style={{ borderRadius: 1.5 }}>
+                <rect width="30" height="20" rx="3" fill="#1A1F71"/>
+                <text x="3" y="14" fill="#FFF" fontSize="9" fontWeight="bold" fontStyle="italic">VISA</text>
+              </svg>
+              {/* Amex */}
+              <svg width="24" height="15" viewBox="0 0 30 20" style={{ borderRadius: 1.5 }}>
+                <rect width="30" height="20" rx="3" fill="#01A6E5"/>
+                <text x="2" y="13" fill="#FFF" fontSize="8" fontWeight="900">AMEX</text>
+              </svg>
+            </div>
+          </div>
+
+          <p style={{ fontSize: 11, color: '#4a5878', lineHeight: 1.4 }}>
+            We accept major cards including VISA and MasterCard. The accepted card options are provided above.
+          </p>
+
+          {/* Form Fields */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div>
+              <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#4a5878', marginBottom: 4 }}>Card number</label>
+              <input
+                type="text"
+                value={payuCardNumber}
+                onChange={e => setPayuCardNumber(e.target.value.replace(/\D/g, '').substring(0, 16).replace(/(.{4})/g, '$1 ').trim())}
+                placeholder="4000 1234 5678 9010"
+                style={{
+                  width: '100%',
+                  padding: '10px 12px',
+                  borderRadius: 6,
+                  border: '1.5px solid #cbd5e1',
+                  fontSize: 13,
+                  outline: 'none',
+                  fontFamily: 'Courier, monospace'
+                }}
+              />
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#4a5878', marginBottom: 4 }}>Card holder name</label>
+              <input
+                type="text"
+                value={payuCardName}
+                onChange={e => setPayuCardName(e.target.value)}
+                placeholder="John Doe"
+                style={{
+                  width: '100%',
+                  padding: '10px 12px',
+                  borderRadius: 6,
+                  border: '1.5px solid #cbd5e1',
+                  fontSize: 13,
+                  outline: 'none'
+                }}
+              />
+            </div>
+
+            <div style={{ display: 'flex', gap: 10 }}>
+              <div style={{ flex: 1.5 }}>
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#4a5878', marginBottom: 4 }}>Expiry date</label>
+                <div style={{ display: 'flex', gap: 6 }}>
+                  <select
+                    value={payuExpiryMM}
+                    onChange={e => setPayuExpiryMM(e.target.value)}
+                    style={{
+                      flex: 1,
+                      padding: '9px 4px',
+                      borderRadius: 6,
+                      border: '1.5px solid #cbd5e1',
+                      fontSize: 13,
+                      outline: 'none'
+                    }}
+                  >
+                    <option value="">MM</option>
+                    {['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'].map(m => (
+                      <option key={m} value={m}>{m}</option>
+                    ))}
+                  </select>
+                  <select
+                    value={payuExpiryYY}
+                    onChange={e => setPayuExpiryYY(e.target.value)}
+                    style={{
+                      flex: 1,
+                      padding: '9px 4px',
+                      borderRadius: 6,
+                      border: '1.5px solid #cbd5e1',
+                      fontSize: 13,
+                      outline: 'none'
+                    }}
+                  >
+                    <option value="">YY</option>
+                    {['26', '27', '28', '29', '30', '31', '32', '33', '34', '35', '36'].map(y => (
+                      <option key={y} value={y}>{y}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div style={{ flex: 1 }}>
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#4a5878', marginBottom: 4 }}>CVV</label>
+                <input
+                  type="password"
+                  value={payuCvv}
+                  onChange={e => setPayuCvv(e.target.value.replace(/\D/g, '').substring(0, 3))}
+                  placeholder="123"
+                  style={{
+                    width: '100%',
+                    padding: '10px 12px',
+                    borderRadius: 6,
+                    border: '1.5px solid #cbd5e1',
+                    fontSize: 13,
+                    outline: 'none'
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Checkbox */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
+              <input type="checkbox" id="storeCard" defaultChecked style={{ width: 15, height: 15 }} />
+              <label htmlFor="storeCard" style={{ fontSize: 11, color: '#4a5878', cursor: 'pointer' }}>Securely store my card with PayU for future purchases</label>
+            </div>
+
+            {/* Action Buttons */}
+            <div style={{ display: 'flex', gap: 10, marginTop: 12 }}>
+              <button
+                className="btn-primary"
+                onClick={() => setIsPaymentProcessing(true)}
+                style={{ width: 'auto', flex: 1.2, padding: '11px 0', fontSize: 13, borderRadius: 24 }}
+              >
+                Save and pay
+              </button>
+              <button
+                className="btn-secondary"
+                onClick={() => setCurrentScreen('payment_cancelled')}
+                style={{ width: 'auto', flex: 0.8, padding: '10px 0', fontSize: 13, borderRadius: 24, borderColor: '#cbd5e1', color: '#4a5878' }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Redirection notice */}
+        <p style={{ fontSize: 10, color: 'var(--text-3)', textAlign: 'center', lineHeight: 1.4, padding: '0 8px' }}>
+          *You may be redirected to your bank's secure site to authenticate yourself before making payment.
+        </p>
+
+      </div>
+    );
+  }
+
+  // ══════════════════════════════════════════════════════════════════
+  // SCREEN: ClicksGo – Payment Cancelled
+  // ══════════════════════════════════════════════════════════════════
+  function renderPaymentCancelled() {
+    return (
+      <div className="screen-root" style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: '#ffffff',
+        height: '100%',
+        minHeight: '450px',
+        padding: '24px',
+        textAlign: 'center',
+        gap: 20
+      }}>
+        {/* Simple Clicks logo at top */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 2, marginBottom: 20 }}>
+          <span style={{ fontStyle: 'italic', fontWeight: 900, fontSize: 20, color: 'var(--navy)' }}>CLICKS</span>
+          <span style={{ fontStyle: 'italic', fontWeight: 900, fontSize: 20, color: 'var(--green)' }}>+</span>
+        </div>
+
+        {/* Warning Icon */}
+        <div style={{
+          width: 72,
+          height: 72,
+          borderRadius: '50%',
+          border: '3px solid var(--red)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: 'var(--red)',
+          marginBottom: 10
+        }}>
+          <AlertCircle size={40} />
+        </div>
+
+        <h3 style={{ fontSize: 18, fontWeight: 800, color: 'var(--navy)' }}>Your transaction was successfully cancelled.</h3>
+        
+        <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.5 }}>
+          You will be redirected shortly. If you are not redirected,{' '}
+          <span
+            onClick={() => setCurrentScreen('clicksgo_payment_method')}
+            style={{ color: 'var(--blue)', fontWeight: 700, textDecoration: 'underline', cursor: 'pointer' }}
+          >
+            click here
+          </span>.
+        </p>
+      </div>
+    );
+  }
+
+  function renderPaymentRedirectScreen() {
+    return (
+      <div className="screen-root" style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: '#ffffff',
+        height: '100%',
+        minHeight: '450px',
+        gap: 30
+      }}>
+        {/* Simple Clicks logo */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          <span style={{ fontStyle: 'italic', fontWeight: 900, fontSize: 28, color: 'var(--navy)' }}>CLICKS</span>
+          <span style={{ fontStyle: 'italic', fontWeight: 900, fontSize: 28, color: 'var(--green)' }}>+</span>
+        </div>
+        {/* Spinner */}
+        <div className="payment-spinner" style={{
+          width: 48,
+          height: 48,
+          border: '4px solid #dde3ef',
+          borderTop: '4px solid var(--blue)',
+          borderRadius: '50%',
+          animation: 'spin 1s linear infinite'
+        }} />
+        <style>{`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}</style>
+      </div>
+    );
+  }
+
+  function renderPaymentProcessingScreen() {
+    return (
+      <div className="screen-root" style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: '#ffffff',
+        height: '100%',
+        minHeight: '450px',
+        gap: 20
+      }}>
+        <div className="payment-spinner" style={{
+          width: 48,
+          height: 48,
+          border: '4px solid #dde3ef',
+          borderTop: '4px solid var(--blue)',
+          borderRadius: '50%',
+          animation: 'spin 1s linear infinite'
+        }} />
+        <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--navy)' }}>Processing Payment...</div>
+        <div style={{ fontSize: 12, color: 'var(--text-3)' }}>Please do not close or refresh this page</div>
+        <style>{`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}</style>
       </div>
     );
   }
@@ -2564,6 +3200,15 @@ export default function App() {
         <button onClick={() => runDemoFlow('clicksgo_medical_aid')} className={`demo-btn ${currentScreen === 'clicksgo_medical_aid' ? 'active' : ''}`}>
           💳 Step 4.7: Claim Medical Aid
         </button>
+        <button onClick={() => runDemoFlow('clicksgo_payment_method')} className={`demo-btn ${currentScreen === 'clicksgo_payment_method' ? 'active' : ''}`}>
+          💵 Step 4.8: Payment Method
+        </button>
+        <button onClick={() => runDemoFlow('payu_form')} className={`demo-btn ${currentScreen === 'payu_form' ? 'active' : ''}`}>
+          🔐 Step 4.9: PayU Gateway
+        </button>
+        <button onClick={() => runDemoFlow('payment_cancelled')} className={`demo-btn ${currentScreen === 'payment_cancelled' ? 'active' : ''}`}>
+          ❌ Step 4.9.1: Cancelled
+        </button>
         <button onClick={() => runDemoFlow('clicksgo_track')} className={`demo-btn ${currentScreen === 'clicksgo_track' ? 'active' : ''}`}>
           🚴 Step 5: Track My Order
         </button>
@@ -2579,7 +3224,7 @@ export default function App() {
       <div className="app-viewport-wrapper">
         {renderHeader()}
         <div className="app-screen-content"
-          style={{ backgroundColor: (!isLoggedIn || ['clicksgo_recipient', 'clicksgo_questionnaire', 'clicksgo_medical_aid'].includes(currentScreen)) ? '#ffffff' : 'var(--bg)' }}>
+          style={{ backgroundColor: (!isLoggedIn || ['clicksgo_recipient', 'clicksgo_questionnaire', 'clicksgo_medical_aid', 'clicksgo_payment_method', 'payu_form', 'payment_cancelled'].includes(currentScreen)) ? '#ffffff' : 'var(--bg)' }}>
           {renderActiveScreen()}
         </div>
         {renderBottomNav()}
