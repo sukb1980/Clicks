@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Menu, User, ShoppingBag, Plus, Search, ChevronRight, X, Camera, Image,
+  Menu, Bell, User, ShoppingBag, Plus, Search, ChevronRight, X, Camera, Image,
   ArrowLeft, Check, AlertCircle, ShoppingCart, Info, Phone, MessageSquare,
   Lock, ArrowRight, Star, MapPin, Clock, Truck, Package, Home, Zap,
   PillBottle, Thermometer, Heart, Shield, Activity, FileText
@@ -80,6 +80,16 @@ export default function App() {
   const [payuCvv, setPayuCvv] = useState('');
   const [isPaymentRedirecting, setIsPaymentRedirecting] = useState(false);
   const [isPaymentProcessing, setIsPaymentProcessing] = useState(false);
+  
+  // Notification states
+  const [hasPaymentNotification, setHasPaymentNotification] = useState(() => localStorage.getItem('clicksgo_payment_notification') === 'true');
+  const [isOrderPaid, setIsOrderPaid] = useState(false);
+  const [prevScreen, setPrevScreen] = useState(currentScreen);
+
+  const triggerPaymentNotification = (value) => {
+    setHasPaymentNotification(value);
+    localStorage.setItem('clicksgo_payment_notification', value ? 'true' : 'false');
+  };
   const [deliveryType, setDeliveryType] = useState('Delivery');
   const [selectedStore, setSelectedStore] = useState(INITIAL_STORES[0]);
   const [selectedRecipient, setSelectedRecipient] = useState(INITIAL_DEPENDENTS[0]);
@@ -166,6 +176,8 @@ export default function App() {
     if (isPaymentProcessing) {
       const timer = setTimeout(() => {
         setIsPaymentProcessing(false);
+        setIsOrderPaid(true);
+        triggerPaymentNotification(false);
         setCurrentScreen('clicksgo_track');
       }, 2000);
       return () => clearTimeout(timer);
@@ -180,6 +192,79 @@ export default function App() {
       }, 3000);
       return () => clearTimeout(timer);
     }
+  }, [currentScreen]);
+
+  // Trigger payment notification when leaving Track screen unpaid
+  useEffect(() => {
+    if (prevScreen === 'clicksgo_track' && currentScreen !== 'clicksgo_track') {
+      if (!isOrderPaid) {
+        triggerPaymentNotification(true);
+      }
+    }
+    setPrevScreen(currentScreen);
+  }, [currentScreen, prevScreen, isOrderPaid]);
+
+  // Synchronize script prices and update successOrder when on order summary screen
+  useEffect(() => {
+    if (currentScreen === 'clicksgo_order_summary') {
+      const order = successOrder;
+      if (!order) {
+        // Set mock order with sample script medicines
+        const mockOrder = {
+          id: 'CG84688918',
+          date: new Date().toLocaleDateString('en-GB').split('/').join(' '),
+          store: CLICKSGO_PHARMACY.name,
+          type: 'ClicksGo',
+          status: 'Order Placed',
+          estimatedDelivery: 'Within 2 hours',
+          products: [
+            { id: 'otc1', name: 'Panado Tablets 24s', price: 38.50, quantity: 1, subtext: 'Pain Relief' },
+            { id: 'refill1', name: 'GLUCONORM 500MG TAB (100)', price: 95.00, quantity: 1, subtext: 'Refill for C***a' },
+            { id: 's_m1', name: 'AMOXICILLIN 500MG (15)', price: 85.50, quantity: 1, subtext: "From doctor's script" },
+            { id: 's_m2', name: 'NEXIUM 40MG TAB (30)', price: 210.00, quantity: 1, subtext: "From doctor's script" }
+          ],
+          total: 444.00
+        };
+        setSuccessOrder(mockOrder);
+      } else {
+        // If there is an active order, check if we need to resolve any script placeholder
+        let hasScriptPlaceholder = false;
+        const displayProducts = [];
+        order.products.forEach(p => {
+          if ((p.subtext && p.subtext.includes('From uploaded script')) || p.name.startsWith('Script ')) {
+            hasScriptPlaceholder = true;
+          } else {
+            displayProducts.push(p);
+          }
+        });
+        if (hasScriptPlaceholder) {
+          const resolvedProducts = [
+            ...displayProducts,
+            { id: 's_m1', name: 'AMOXICILLIN 500MG (15)', price: 85.50, quantity: 1, subtext: "From doctor's script" },
+            { id: 's_m2', name: 'NEXIUM 40MG TAB (30)', price: 210.00, quantity: 1, subtext: "From doctor's script" }
+          ];
+          const newSubtotal = resolvedProducts.reduce((sum, item) => sum + item.price * item.quantity, 0);
+          const newTotal = newSubtotal + 15.00;
+          setSuccessOrder({
+            ...order,
+            products: resolvedProducts,
+            total: newTotal
+          });
+        }
+      }
+    }
+  }, [currentScreen]);
+
+  // Reset scroll positions on screen transitions
+  useEffect(() => {
+    const container = document.querySelector('.app-screen-content');
+    if (container) {
+      container.scrollTop = 0;
+    }
+    const roots = document.querySelectorAll('.screen-root');
+    roots.forEach(root => {
+      root.scrollTop = 0;
+    });
   }, [currentScreen]);
 
   const updateDbState = (updates) => {
@@ -267,6 +352,8 @@ export default function App() {
       setCurrentScreen('clicksgo_questionnaire');
     } else if (flowName === 'clicksgo_medical_aid') {
       setCurrentScreen('clicksgo_medical_aid');
+    } else if (flowName === 'clicksgo_order_summary') {
+      setCurrentScreen('clicksgo_order_summary');
     } else if (flowName === 'clicksgo_payment_method') {
       setCurrentScreen('clicksgo_payment_method');
     } else if (flowName === 'payu_form') {
@@ -361,6 +448,8 @@ export default function App() {
     localStorage.removeItem('clicksgo_selected_refills');
 
     setSuccessOrder(newOrder);
+    setIsOrderPaid(false);
+    triggerPaymentNotification(false);
     setCurrentScreen('clicksgo_recipient');
   };
 
@@ -374,7 +463,8 @@ export default function App() {
       clicksgo_recipient: 'clicksgo_confirm',
       clicksgo_questionnaire: 'clicksgo_recipient',
       clicksgo_medical_aid: 'clicksgo_questionnaire',
-      clicksgo_payment_method: 'clicksgo_medical_aid',
+      clicksgo_payment_method: hasPaymentNotification ? 'clicksgo_order_summary' : 'clicksgo_medical_aid',
+      clicksgo_order_summary: 'clicksgo_home',
       payu_form: 'clicksgo_payment_method',
       payment_cancelled: 'clicksgo_payment_method',
       clicksgo_track: 'clicksgo_home',
@@ -436,6 +526,22 @@ export default function App() {
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
           {isLoggedIn && (
             <>
+              {hasPaymentNotification && (
+                <div style={{ position: 'relative', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                  onClick={() => { setCurrentScreen('clicksgo_order_summary'); }}>
+                  <Bell size={20} color="var(--navy)" />
+                  <span style={{
+                    position: 'absolute',
+                    top: -2,
+                    right: -2,
+                    width: 7,
+                    height: 7,
+                    borderRadius: '50%',
+                    background: '#ED1C24',
+                    border: '1.5px solid #fff'
+                  }} />
+                </div>
+              )}
               <div style={{ position: 'relative', cursor: 'pointer' }}
                 onClick={() => { setActiveTab('Cart'); setCurrentScreen('clicksgo_review'); }}>
                 <ShoppingCart size={20} color="var(--navy)" />
@@ -497,6 +603,7 @@ export default function App() {
       clicksgo_pharmacy: renderClicksGoPharmacy,
       clicksgo_shop: renderClicksGoShop,
       clicksgo_review: renderClicksGoReview,
+      clicksgo_order_summary: renderClicksGoOrderSummary,
       clicksgo_confirm: renderClicksGoConfirm,
       clicksgo_recipient: renderClicksGoRecipient,
       clicksgo_questionnaire: renderClicksGoQuestionnaire,
@@ -530,6 +637,65 @@ export default function App() {
           <span style={{ fontSize: 11, color: 'var(--text-3)', display: 'block' }}>Welcome back,</span>
           <h2 style={{ fontSize: 20, fontWeight: 800, color: 'var(--navy)', marginTop: 2 }}>{db.user.fullName || db.user.name}</h2>
         </div>
+
+        {/* Pending Payment Notification Banner */}
+        {hasPaymentNotification && (
+          <div
+            onClick={() => setCurrentScreen('clicksgo_order_summary')}
+            style={{
+              background: 'linear-gradient(135deg, #fff5f5 0%, #ffe3e3 100%)',
+              border: '1.5px solid #ffa8a8',
+              borderRadius: 16,
+              padding: '16px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              cursor: 'pointer',
+              boxShadow: '0 4px 16px rgba(224,49,49,0.08)',
+              transition: 'all 0.2s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.boxShadow = '0 6px 20px rgba(224,49,49,0.12)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = '0 4px 16px rgba(224,49,49,0.08)';
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{
+                width: 36,
+                height: 36,
+                borderRadius: '50%',
+                background: '#ffc9c9',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#fa5252',
+                flexShrink: 0
+              }}>
+                <AlertCircle size={20} />
+              </div>
+              <div style={{ textAlign: 'left' }}>
+                <div style={{ fontSize: 14, fontWeight: 800, color: '#c92a2a' }}>Payment Pending</div>
+                <div style={{ fontSize: 12, color: '#e03131', fontWeight: 500, marginTop: 2 }}>Complete the payment for your order</div>
+              </div>
+            </div>
+            <div style={{
+              width: 28,
+              height: 28,
+              borderRadius: '50%',
+              background: 'rgba(250,82,82,0.1)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#fa5252'
+            }}>
+              <ChevronRight size={18} />
+            </div>
+          </div>
+        )}
 
         {/* ClicksGo hero banner */}
         <div
@@ -1449,6 +1615,181 @@ export default function App() {
   }
 
   // ══════════════════════════════════════════════════════════════════
+  // SCREEN: ClicksGo – Order Summary (unpaid review)
+  // ══════════════════════════════════════════════════════════════════
+  function renderClicksGoOrderSummary() {
+    const mockOrder = {
+      id: 'CG84688918',
+      date: new Date().toLocaleDateString('en-GB').split('/').join(' '),
+      store: CLICKSGO_PHARMACY.name,
+      type: 'ClicksGo',
+      status: 'Order Placed',
+      estimatedDelivery: 'Within 2 hours',
+      products: [
+        { id: 'otc1', name: 'Panado Tablets 24s', price: 38.50, quantity: 1, subtext: 'Pain Relief' },
+        { id: 'refill1', name: 'GLUCONORM 500MG TAB (100)', price: 95.00, quantity: 1, subtext: 'Refill for C***a' },
+        { id: 's_m1', name: 'AMOXICILLIN 500MG (15)', price: 85.50, quantity: 1, subtext: "From doctor's script" },
+        { id: 's_m2', name: 'NEXIUM 40MG TAB (30)', price: 210.00, quantity: 1, subtext: "From doctor's script" }
+      ],
+      total: 444.00
+    };
+
+    const order = successOrder || mockOrder;
+    
+    let otcItems = [];
+    let repeatItems = [];
+    let scriptItems = [];
+    
+    order.products.forEach(p => {
+      if (p.subtext && p.subtext.includes('Refill for')) {
+        repeatItems.push(p);
+      } else if (p.subtext && p.subtext.includes("From doctor's script")) {
+        scriptItems.push(p);
+      } else if ((p.subtext && p.subtext.includes('From uploaded script')) || p.name.startsWith('Script ')) {
+        scriptItems.push(
+          { id: 's_m1', name: 'AMOXICILLIN 500MG (15)', price: 85.50, quantity: 1, subtext: "From doctor's script" },
+          { id: 's_m2', name: 'NEXIUM 40MG TAB (30)', price: 210.00, quantity: 1, subtext: "From doctor's script" }
+        );
+      } else {
+        otcItems.push(p);
+      }
+    });
+
+    const otcTotal = otcItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const repeatTotal = repeatItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const rxTotal = scriptItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+    const subtotal = otcTotal + repeatTotal + rxTotal;
+    const deliveryFee = 15.00;
+    const total = subtotal + deliveryFee;
+    const totalItemsCount = otcItems.length + repeatItems.length + scriptItems.length;
+
+    const ph = CLICKSGO_PHARMACY;
+
+    return (
+      <div className="screen-root" style={{ gap: 14, paddingBottom: 24, overflowY: 'auto', maxHeight: '100%' }}>
+        
+        {/* Deliver to bar */}
+        <div style={{ padding: '0 4px' }}>
+          <div style={{ fontSize: 10, color: 'var(--text-3)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Deliver to</div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 2 }}>
+            <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--navy)' }}>21, Park Street, Bengaluru <span style={{ fontSize: 10 }}>▼</span></span>
+          </div>
+        </div>
+
+        {/* Pharmacy card */}
+        <div className="card" style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: 11, color: 'var(--text-3)', fontWeight: 600, textTransform: 'uppercase' }}>Your pharmacy</span>
+            <span className="chip chip--green" style={{ fontSize: 10, padding: '2px 8px' }}>{ph.distance} away</span>
+          </div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-1)' }}>{ph.name}</div>
+          <div style={{ fontSize: 11, color: 'var(--text-2)', display: 'flex', alignItems: 'center', gap: 6, marginTop: 2 }}>
+            <Clock size={12} color="var(--blue)" />
+            <span>15 min delivery (2 hours) · Delivery fee: R{deliveryFee.toFixed(2)}</span>
+          </div>
+        </div>
+
+        {/* Items header */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 6 }}>
+          <span style={{ fontSize: 14, fontWeight: 800, color: 'var(--text-1)' }}>
+            Order Summary ({totalItemsCount} items)
+          </span>
+        </div>
+
+        {/* OTC items section */}
+        {otcItems.length > 0 && (
+          <div className="card" style={{ padding: '0 14px' }}>
+            <div style={{ padding: '12px 0 6px', borderBottom: '1px solid var(--border)' }}>
+              <span style={{ fontSize: 12, fontWeight: 800, color: 'var(--blue)' }}>OTC items</span>
+            </div>
+            {otcItems.map(item => (
+              <div key={item.id} className="product-row" style={{ padding: '12px 0' }}>
+                <div style={{ width: 40, height: 40, borderRadius: 8, background: 'var(--bg)', border: '1px solid var(--border)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Activity size={18} color="var(--blue)" />
+                </div>
+                <div className="product-row__info" style={{ flex: 1, minWidth: 0 }}>
+                  <span className="product-row__name" style={{ fontSize: 12, fontWeight: 700 }}>{item.name}</span>
+                  <span className="product-row__sub" style={{ fontSize: 11, color: 'var(--text-3)' }}>{item.subtext}</span>
+                  <span className="product-row__price" style={{ fontSize: 12, fontWeight: 800, color: 'var(--text-1)', marginTop: 2 }}>R{item.price.toFixed(2)}</span>
+                </div>
+                <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-2)' }}>Qty: {item.quantity}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Doctor's script items section */}
+        {scriptItems.length > 0 && (
+          <div className="card" style={{ padding: '0 14px' }}>
+            <div style={{ padding: '12px 0 6px', borderBottom: '1px solid var(--border)' }}>
+              <span style={{ fontSize: 12, fontWeight: 800, color: 'var(--navy)' }}>Doctor's script</span>
+            </div>
+            {scriptItems.map((item, idx) => (
+              <div key={item.id || idx} className="product-row" style={{ padding: '12px 0' }}>
+                <div style={{ width: 40, height: 40, borderRadius: 8, background: 'var(--bg)', border: '1px solid var(--border)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Shield size={18} color="var(--navy)" />
+                </div>
+                <div className="product-row__info" style={{ flex: 1, minWidth: 0 }}>
+                  <span className="product-row__name" style={{ fontSize: 12, fontWeight: 700 }}>{item.name}</span>
+                  <span className="product-row__sub" style={{ fontSize: 11, color: 'var(--text-3)' }}>{item.subtext}</span>
+                  <span className="product-row__price" style={{ fontSize: 12, fontWeight: 800, color: 'var(--text-1)', marginTop: 2 }}>R{item.price.toFixed(2)}</span>
+                </div>
+                <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-2)' }}>Qty: {item.quantity}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Repeat order items section */}
+        {repeatItems.length > 0 && (
+          <div className="card" style={{ padding: '0 14px' }}>
+            <div style={{ padding: '12px 0 6px', borderBottom: '1px solid var(--border)' }}>
+              <span style={{ fontSize: 12, fontWeight: 800, color: 'var(--green)' }}>Repeat Order ({repeatItems.length})</span>
+            </div>
+            {repeatItems.map(item => (
+              <div key={item.id} className="product-row" style={{ padding: '12px 0' }}>
+                <div style={{ width: 40, height: 40, borderRadius: 8, background: 'var(--bg)', border: '1px solid var(--border)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Clock size={18} color="var(--green)" />
+                </div>
+                <div className="product-row__info" style={{ flex: 1, minWidth: 0 }}>
+                  <span className="product-row__name" style={{ fontSize: 12, fontWeight: 700 }}>{item.name}</span>
+                  <span className="product-row__sub" style={{ fontSize: 11, color: 'var(--text-3)' }}>{item.subtext}</span>
+                  <span className="product-row__price" style={{ fontSize: 12, fontWeight: 800, color: 'var(--text-1)', marginTop: 2 }}>R{item.price.toFixed(2)}</span>
+                </div>
+                <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-2)' }}>Qty: {item.quantity}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Pricing breakdown */}
+        <div className="card" style={{ padding: 14, display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'var(--text-2)' }}>
+            <span>Subtotal</span>
+            <span style={{ fontWeight: 700, color: 'var(--text-1)' }}>R{subtotal.toFixed(2)}</span>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'var(--text-2)' }}>
+            <span>Delivery fee</span>
+            <span style={{ fontWeight: 700, color: 'var(--text-1)' }}>R{deliveryFee.toFixed(2)}</span>
+          </div>
+          <div style={{ height: 1, background: 'var(--border)', margin: '4px 0' }} />
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, fontWeight: 800 }}>
+            <span style={{ color: 'var(--navy)' }}>Total</span>
+            <span style={{ color: 'var(--navy)' }}>R{total.toFixed(2)}</span>
+          </div>
+        </div>
+
+        {/* Pay button */}
+        <button className="btn-primary" onClick={() => setCurrentScreen('clicksgo_payment_method')}>
+          Pay for Order
+        </button>
+
+      </div>
+    );
+  }
+
+  // ══════════════════════════════════════════════════════════════════
   // SCREEN 5: ClicksGo – Confirm Order
   // ══════════════════════════════════════════════════════════════════
   function renderClicksGoConfirm() {
@@ -2045,7 +2386,7 @@ export default function App() {
           <button
             className="btn-primary"
             onClick={() => {
-              setCurrentScreen('clicksgo_payment_method');
+              setCurrentScreen('clicksgo_track');
             }}
             style={{ width: '100%', borderRadius: 30, padding: '14px 0', fontSize: 15, fontWeight: 700 }}
           >
@@ -2054,7 +2395,7 @@ export default function App() {
           
           <button
             onClick={() => {
-              setCurrentScreen('clicksgo_payment_method');
+              setCurrentScreen('clicksgo_track');
             }}
             style={{
               background: 'none',
@@ -2659,7 +3000,12 @@ export default function App() {
   // ══════════════════════════════════════════════════════════════════
   function renderClicksGoTrack() {
     const order = successOrder || db.orders[0];
-    const trackSteps = [
+    const trackSteps = isOrderPaid ? [
+      { label: 'Order Placed', sub: "We've received your order", done: true },
+      { label: 'Pharmacist busy with order', sub: 'Keep your phone near.', done: true },
+      { label: 'Payment Request sent to you', sub: "Payment received successfully", done: true },
+      { label: 'Delivery on route', sub: "We'll notify you when your order is on the way.", done: false, active: true }
+    ] : [
       { label: 'Order Placed', sub: "We've received your order", done: true },
       { label: 'Pharmacist busy with order', sub: 'Keep your phone near.', done: false, active: true },
       { label: 'Payment Request sent to you', sub: "We'll notify you when it's time to pay", done: false },
@@ -3199,6 +3545,9 @@ export default function App() {
         </button>
         <button onClick={() => runDemoFlow('clicksgo_medical_aid')} className={`demo-btn ${currentScreen === 'clicksgo_medical_aid' ? 'active' : ''}`}>
           💳 Step 4.7: Claim Medical Aid
+        </button>
+        <button onClick={() => runDemoFlow('clicksgo_order_summary')} className={`demo-btn ${currentScreen === 'clicksgo_order_summary' ? 'active' : ''}`}>
+          🧾 Step 4.7.1: Order Summary
         </button>
         <button onClick={() => runDemoFlow('clicksgo_payment_method')} className={`demo-btn ${currentScreen === 'clicksgo_payment_method' ? 'active' : ''}`}>
           💵 Step 4.8: Payment Method
