@@ -1,16 +1,34 @@
-/* Reset and Font Setup */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+/* ClicksGo – Pharmacy Quick Commerce */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
+/* ─── Design Tokens ─── */
 :root {
-  --primary-blue: #004b87;
-  --primary-green: #6ea73b;
-  --bg-gray: #f2f5f8;
-  --text-dark: #1a202c;
-  --text-gray: #718096;
-  --border-color: #e2e8f0;
+  --navy:        #002B5C;      /* Primary deep navy */
+  --blue:        #0057B8;      /* Action blue */
+  --blue-light:  #1A73E8;      /* Hover / accent */
+  --blue-bg:     #E8F0FE;      /* Tinted backgrounds */
+  --green:       #3DB54A;      /* Success / in-stock */
+  --green-bg:    #EAF8EC;
+  --amber:       #F59E0B;      /* Warning */
+  --red:         #DC2626;
+  --white:       #FFFFFF;
+  --bg:          #F4F6FA;      /* App background */
+  --surface:     #FFFFFF;
+  --border:      #DDE3EF;
+  --text-1:      #0D1B3E;      /* Headings */
+  --text-2:      #4A5878;      /* Body */
+  --text-3:      #8A94A8;      /* Captions / placeholders */
+  --shadow-sm:   0 1px 4px rgba(0,43,92,.08);
+  --shadow-md:   0 4px 16px rgba(0,43,92,.12);
+  --shadow-lg:   0 8px 32px rgba(0,43,92,.18);
+  --radius-sm:   8px;
+  --radius-md:   12px;
+  --radius-lg:   20px;
+  --radius-xl:   28px;
 }
 
-* {
+/* ─── Reset ─── */
+*, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -19,84 +37,102 @@
 }
 
 body {
-  background-color: #1a202c; /* Sleek dark mode background outside the mobile frame */
-  color: var(--text-dark);
+  background: linear-gradient(135deg, #0D1B3E 0%, #002B5C 50%, #0057B8 100%);
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  min-height: 100dvh; /* dynamic viewport height — accounts for browser chrome on mobile */
+  min-height: 100dvh;
   overflow-x: hidden;
 }
 
-/* Device Preview Shell (Desktop) */
+/* ─── Phone Frame (Desktop) ─── */
 .app-viewport-wrapper {
   position: relative;
-  width: 412px;
-  height: 90vh;
+  width: 390px;
+  height: 88vh;
+  max-height: 844px;
   flex-shrink: 0;
-  background-color: #ffffff;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-  border-radius: 40px;
-  border: 12px solid #2d3748; /* sleek phone bezel */
+  background-color: var(--bg);
+  box-shadow: 0 32px 80px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,.08);
+  border-radius: 44px;
+  border: 10px solid #1C2A45;
   overflow: hidden;
   display: flex;
   flex-direction: column;
 }
 
-/* On mobile viewports, remove bezels and stretch to full screen */
+/* Phone notch */
+.app-viewport-wrapper::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 120px;
+  height: 28px;
+  background: #1C2A45;
+  border-radius: 0 0 18px 18px;
+  z-index: 999;
+}
+
+/* Mobile: full screen */
 @media (max-width: 600px) {
   body {
-    background-color: #ffffff;
-    align-items: flex-start; /* prevent centering that can break height on mobile */
-    min-height: 100dvh;
+    background: var(--bg);
+    align-items: flex-start;
   }
   .app-viewport-wrapper {
     width: 100%;
     max-width: 100%;
     height: 100vh;
-    height: 100dvh; /* dvh fills only the *visible* area, excluding browser chrome */
+    height: 100dvh;
     max-height: 100dvh;
     border-radius: 0;
     border: none;
   }
+  .app-viewport-wrapper::before {
+    display: none;
+  }
 }
 
-
-
-/* Scrollable screen container */
+/* ─── Screen content ─── */
 .app-screen-content {
   flex: 1;
   overflow-y: auto;
-  background-color: var(--bg-gray);
+  background-color: var(--bg);
   display: flex;
   flex-direction: column;
   position: relative;
   scroll-behavior: smooth;
-  /* Ensure children always fill 100% width */
   align-items: stretch;
+  -webkit-overflow-scrolling: touch;
 }
 
-/* Standard screen root — every screen's outermost div uses this */
+.app-screen-content::-webkit-scrollbar { width: 3px; }
+.app-screen-content::-webkit-scrollbar-thumb {
+  background: rgba(0,43,92,.15);
+  border-radius: 2px;
+}
+
+/* ─── Screen roots ─── */
 .screen-root {
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
   padding: 16px;
   box-sizing: border-box;
 }
 
-/* Flush variant: no outer padding (screen manages its own per-section padding) */
 .screen-root--flush {
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 0;
   box-sizing: border-box;
 }
 
-/* Full-height variant: screen needs to fill the remaining viewport (e.g. empty cart, PayU) */
 .screen-root--fill {
   width: 100%;
   flex: 1;
@@ -105,27 +141,85 @@ body {
   box-sizing: border-box;
 }
 
-
-/* Custom scrollbar to look sleek */
-.app-screen-content::-webkit-scrollbar {
-  width: 4px;
+/* ─── Top App Bar ─── */
+.app-bar {
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  z-index: 60;
+  min-height: 56px;
+  padding-top: 32px; /* account for notch */
 }
-.app-screen-content::-webkit-scrollbar-thumb {
-  background-color: rgba(0, 0, 0, 0.1);
-  border-radius: 2px;
+
+@media (max-width: 600px) {
+  .app-bar { padding-top: 10px; }
 }
 
-/* Bottom Navigation Bar */
+.app-bar__left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.app-bar__icon-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  transition: background .15s;
+}
+.app-bar__icon-btn:hover { background: var(--blue-bg); }
+
+/* ─── ClicksGo Logo ─── */
+.clicksgo-logo {
+  display: flex;
+  align-items: baseline;
+  gap: 0;
+  line-height: 1;
+}
+.clicksgo-logo__clicks {
+  font-weight: 800;
+  font-size: 17px;
+  color: var(--navy);
+  letter-spacing: 0.02em;
+}
+.clicksgo-logo__plus {
+  font-weight: 900;
+  font-size: 17px;
+  color: var(--green);
+}
+.clicksgo-logo__go {
+  font-weight: 800;
+  font-size: 17px;
+  color: var(--blue);
+  margin-left: 3px;
+}
+
+/* Big logo variant (for login / hero) */
+.clicksgo-logo--lg .clicksgo-logo__clicks { font-size: 30px; }
+.clicksgo-logo--lg .clicksgo-logo__plus { font-size: 30px; }
+.clicksgo-logo--lg .clicksgo-logo__go { font-size: 30px; }
+
+/* ─── Bottom Navigation ─── */
 .bottom-nav-bar {
-  background-color: #ffffff;
-  border-top: 1px solid var(--border-color);
-  height: 65px;
-  flex-shrink: 0; /* prevent flex from compressing the nav bar */
+  background: var(--white);
+  border-top: 1px solid var(--border);
+  height: 62px;
+  flex-shrink: 0;
   display: flex;
   justify-content: space-around;
   align-items: center;
   z-index: 50;
-  padding-bottom: env(safe-area-inset-bottom, 5px); /* handle iPhone home indicator */
+  padding-bottom: env(safe-area-inset-bottom, 4px);
 }
 
 .nav-tab-button {
@@ -136,164 +230,547 @@ body {
   background: none;
   border: none;
   cursor: pointer;
-  color: var(--text-gray);
+  color: var(--text-3);
   font-size: 10px;
   font-weight: 500;
-  width: 60px;
-  transition: color 0.15s ease;
+  width: 64px;
+  gap: 2px;
+  transition: color .15s;
 }
+.nav-tab-button.active { color: var(--blue); }
+.nav-tab-button svg { width: 22px; height: 22px; }
 
-.nav-tab-button.active {
-  color: var(--primary-blue);
-}
-
-.nav-tab-button svg {
-  width: 22px;
-  height: 22px;
-  margin-bottom: 3px;
-}
-
-/* Floating badge for cart */
-.cart-badge {
-  position: relative;
-}
+/* Cart badge */
+.cart-badge { position: relative; }
 .cart-badge-count {
   position: absolute;
-  top: -4px;
-  right: -8px;
-  background-color: #e53e3e;
-  color: #ffffff;
+  top: -4px; right: -8px;
+  background: var(--red);
+  color: #fff;
   font-size: 9px;
   font-weight: 700;
-  width: 16px;
-  height: 16px;
+  width: 16px; height: 16px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-/* Sidebar Drawer Navigation Menu */
-.sidebar-drawer-overlay {
-  position: absolute;
-  inset: 0;
-  background-color: rgba(0, 0, 0, 0.4);
-  z-index: 1000;
-  display: flex;
-  animation: fadeIn 0.25s ease;
+/* ─── Cards ─── */
+.card {
+  background: var(--white);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
 }
 
-.sidebar-drawer-content {
-  width: 80%;
-  max-width: 320px;
-  height: 100%;
-  background-color: #ffffff;
-  box-shadow: 4px 0 10px rgba(0,0,0,0.1);
+.card--elevated {
+  box-shadow: var(--shadow-md);
+}
+
+/* ─── Primary Button ─── */
+.btn-primary {
+  background: linear-gradient(135deg, var(--blue) 0%, var(--navy) 100%);
+  color: #fff;
+  border: none;
+  border-radius: 30px;
+  padding: 14px 24px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  width: 100%;
+  letter-spacing: 0.01em;
+  transition: opacity .2s, transform .1s;
+  box-shadow: 0 4px 14px rgba(0,87,184,.35);
+}
+.btn-primary:hover { opacity: .92; }
+.btn-primary:active { transform: scale(.98); }
+
+.btn-secondary {
+  background: transparent;
+  color: var(--blue);
+  border: 1.5px solid var(--blue);
+  border-radius: 30px;
+  padding: 13px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  transition: background .15s;
+}
+.btn-secondary:hover { background: var(--blue-bg); }
+
+/* ─── Tag / Chip ─── */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 600;
+}
+.chip--blue { background: var(--blue-bg); color: var(--blue); }
+.chip--green { background: var(--green-bg); color: var(--green); }
+.chip--amber { background: #FEF3C7; color: #92400E; }
+
+/* ─── Step indicator pills ─── */
+.step-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-2);
+}
+.step-pill__circle {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+.step-pill__circle--active {
+  background: var(--blue);
+  color: #fff;
+}
+.step-pill__circle--done {
+  background: var(--green);
+  color: #fff;
+}
+.step-pill__circle--inactive {
+  background: var(--border);
+  color: var(--text-3);
+}
+
+/* ─── Section header ─── */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.section-header h3 {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-1);
+}
+.section-header__link {
+  font-size: 12px;
+  color: var(--blue);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* ─── Status rows (Track order) ─── */
+.track-step {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 8px 0;
+}
+.track-step__dot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  margin-top: 2px;
+}
+.track-step__dot--done { background: var(--green); color: #fff; }
+.track-step__dot--active { background: var(--blue); color: #fff; }
+.track-step__dot--pending { background: var(--border); color: var(--text-3); }
+.track-step__line {
+  width: 2px;
+  flex: 1;
+  min-height: 20px;
+  background: var(--border);
+  margin-left: 9px;
+  margin-top: -2px;
+}
+
+/* ─── Tab switcher ─── */
+.tab-switcher {
+  display: flex;
+  border-bottom: 1.5px solid var(--border);
+}
+.tab-switcher__tab {
+  flex: 1;
+  padding: 10px 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-3);
+  background: none;
+  border: none;
+  border-bottom: 2.5px solid transparent;
+  cursor: pointer;
+  transition: all .15s;
+  margin-bottom: -1.5px;
+}
+.tab-switcher__tab.active {
+  color: var(--blue);
+  border-bottom-color: var(--blue);
+}
+
+/* ─── Category scroll row ─── */
+.category-scroll {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 4px 0 4px 0;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.category-scroll::-webkit-scrollbar { display: none; }
+
+.category-chip {
+  flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  animation: slideInLeft 0.25s ease;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--white);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-2);
+  transition: all .15s;
+  min-width: 60px;
+}
+.category-chip.active {
+  background: var(--blue-bg);
+  border-color: var(--blue);
+  color: var(--blue);
+}
+.category-chip svg { width: 18px; height: 18px; }
+
+/* ─── Product Row Item ─── */
+.product-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+.product-row:last-child { border-bottom: none; }
+.product-row__img {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.product-row__info { flex: 1; min-width: 0; }
+.product-row__name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-1);
+  display: block;
+}
+.product-row__sub {
+  font-size: 10px;
+  color: var(--text-3);
+  display: block;
+  margin-top: 1px;
+}
+.product-row__price {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--blue);
+  display: block;
+  margin-top: 2px;
+}
+.product-row__stock {
+  font-size: 10px;
+  color: var(--green);
+  font-weight: 600;
 }
 
-/* Animations */
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+/* ─── Qty control ─── */
+.qty-control {
+  display: flex;
+  align-items: center;
+  border: 1.5px solid var(--border);
+  border-radius: 20px;
+  overflow: hidden;
+  gap: 0;
+}
+.qty-control__btn {
+  width: 28px;
+  height: 28px;
+  background: none;
+  border: none;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--blue);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .15s;
+}
+.qty-control__btn:hover { background: var(--blue-bg); }
+.qty-control__val {
+  min-width: 28px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-1);
 }
 
-@keyframes slideInLeft {
-  from { transform: translateX(-100%); }
-  to { transform: translateX(0); }
+/* ─── Address row ─── */
+.address-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  background: var(--white);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  cursor: pointer;
+  transition: border-color .15s;
+}
+.address-row.selected {
+  border-color: var(--blue);
+  background: var(--blue-bg);
+}
+.address-row__icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--blue-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.address-row__label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-1);
+}
+.address-row__sub {
+  font-size: 11px;
+  color: var(--text-2);
+  margin-top: 2px;
+  line-height: 1.4;
 }
 
-@keyframes slideInUp {
-  from { transform: translateY(100%); }
-  to { transform: translateY(0); }
+/* ─── Pharmacy map card ─── */
+.pharmacy-map {
+  background: linear-gradient(160deg, #E8EFF9 0%, #D0DEF5 100%);
+  border-radius: var(--radius-md);
+  height: 160px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+/* Grid pattern on map */
+.pharmacy-map::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0,87,184,.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,87,184,.06) 1px, transparent 1px);
+  background-size: 24px 24px;
 }
 
-/* Common loading circle spinner */
+.pharmacy-map__store-icon {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.pharmacy-map__building {
+  width: 72px;
+  height: 64px;
+  background: var(--navy);
+  border-radius: 6px 6px 0 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  padding-bottom: 4px;
+  position: relative;
+  overflow: hidden;
+}
+.pharmacy-map__building::before {
+  content: 'CLICKS';
+  position: absolute;
+  top: 8px;
+  font-size: 8px;
+  font-weight: 800;
+  color: rgba(255,255,255,.9);
+  letter-spacing: 0.05em;
+}
+.pharmacy-map__building-windows {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  padding: 0 6px;
+  margin-top: 20px;
+}
+.pharmacy-map__window {
+  width: 12px;
+  height: 10px;
+  background: rgba(255,255,255,.2);
+  border-radius: 2px;
+}
+.pharmacy-map__window.lit { background: #FCD34D; }
+.pharmacy-map__door {
+  width: 16px;
+  height: 20px;
+  background: var(--blue);
+  border-radius: 3px 3px 0 0;
+}
+.pharmacy-map__pin {
+  background: var(--red);
+  color: #fff;
+  width: 24px;
+  height: 24px;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: -8px;
+  right: -12px;
+}
+.pharmacy-map__trees {
+  position: absolute;
+  left: 20px;
+  bottom: 0;
+  display: flex;
+  gap: 6px;
+}
+.pharmacy-map__tree {
+  width: 20px;
+  height: 32px;
+  background: var(--green);
+  clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+}
+.pharmacy-map__distance-tag {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: var(--white);
+  border-radius: 20px;
+  padding: 4px 10px;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--navy);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ─── Animations ─── */
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideInLeft { from { transform: translateX(-100%); } to { transform: translateX(0); } }
+@keyframes slideInUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .6; } }
+
 .loading-spinner-circle {
   width: 32px;
   height: 32px;
-  border: 3px solid rgba(0, 86, 145, 0.2);
-  border-top-color: var(--primary-blue);
+  border: 3px solid var(--blue-bg);
+  border-top-color: var(--blue);
   border-radius: 50%;
-  animation: spin 0.8s linear infinite;
+  animation: spin .8s linear infinite;
 }
 
-/* Demo Dashboard Container (shows outside viewport on desktop, hides on small mobile viewports) */
+/* ─── Sidebar drawer ─── */
+.sidebar-drawer-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,.45);
+  z-index: 1000;
+  display: flex;
+  animation: fadeIn .2s ease;
+}
+.sidebar-drawer-content {
+  width: 78%;
+  max-width: 300px;
+  height: 100%;
+  background: var(--white);
+  box-shadow: 4px 0 20px rgba(0,0,0,.15);
+  display: flex;
+  flex-direction: column;
+  animation: slideInLeft .22s ease;
+}
+
+/* ─── Demo Dashboard ─── */
 .demo-dashboard {
   position: fixed;
   left: 30px;
   top: 50%;
   transform: translateY(-50%);
-  width: 300px;
-  background-color: #2d3748;
+  width: 280px;
+  background: rgba(13, 27, 62, .95);
+  backdrop-filter: blur(16px);
   color: #ffffff;
-  border-radius: 16px;
+  border-radius: 20px;
   padding: 20px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+  box-shadow: 0 10px 40px rgba(0,0,0,.4);
+  border: 1px solid rgba(255,255,255,.1);
   z-index: 10000;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
-/* Floating Action Button for Demo Controls on Mobile/Tablet */
 .demo-fab {
   display: none;
   position: fixed;
   bottom: 80px;
   right: 16px;
-  background-color: var(--primary-blue);
-  color: #ffffff;
+  background: linear-gradient(135deg, var(--blue), var(--navy));
+  color: #fff;
   border: none;
   border-radius: 50%;
-  width: 44px;
-  height: 44px;
+  width: 46px;
+  height: 46px;
   padding: 0;
   font-size: 22px;
-  font-weight: 400;
   align-items: center;
   justify-content: center;
-  gap: 0;
-  box-shadow: 0 4px 16px rgba(0, 75, 135, 0.55);
+  box-shadow: 0 4px 16px rgba(0,87,184,.55);
   cursor: pointer;
   z-index: 100005;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all .2s cubic-bezier(.4,0,.2,1);
 }
-
-.demo-fab:hover {
-  transform: scale(1.1);
-  background-color: #005697;
-  box-shadow: 0 6px 20px rgba(0, 75, 135, 0.65);
-}
-
-.demo-fab:active {
-  transform: scale(0.95);
-}
-
-/* Hide text label — circle shows only the icon */
-.demo-fab span {
-  display: none;
-}
+.demo-fab:hover { transform: scale(1.1); }
+.demo-fab:active { transform: scale(.95); }
+.demo-fab span { display: none; }
 
 @media (max-width: 1100px) {
-  .demo-fab {
-    display: flex;
-  }
-
+  .demo-fab { display: flex; }
   .demo-dashboard {
     position: fixed;
     bottom: 145px;
     right: 20px;
     left: auto;
     top: auto;
-    width: 280px;
+    width: 265px;
     max-height: 400px;
     transform: translateY(15px);
     opacity: 0;
@@ -301,10 +778,8 @@ body {
     overflow-y: auto;
     flex-direction: column;
     padding: 16px;
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55);
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all .25s cubic-bezier(.4,0,.2,1);
   }
-
   .demo-dashboard.open {
     transform: translateY(0);
     opacity: 1;
@@ -313,32 +788,139 @@ body {
 }
 
 .demo-dashboard h3 {
-  font-size: 14px;
-  color: #a0aec0;
+  font-size: 11px;
+  color: rgba(255,255,255,.5);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: .06em;
   margin-bottom: 4px;
 }
 
 .demo-btn {
-  background-color: #4a5568;
+  background: rgba(255,255,255,.08);
   color: #ffffff;
-  border: none;
-  border-radius: 8px;
-  padding: 8px 12px;
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 10px;
+  padding: 9px 12px;
   text-align: left;
   font-size: 12px;
+  font-weight: 500;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: background .2s;
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
+.demo-btn:hover { background: rgba(255,255,255,.14); }
+.demo-btn.active { background: var(--blue); border-color: var(--blue); font-weight: 700; }
 
-.demo-btn:hover {
-  background-color: #718096;
+/* ─── Home screen shortcuts ─── */
+.shortcut-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
 }
 
-.demo-btn.active {
-  background-color: var(--primary-blue);
+.shortcut-card {
+  background: var(--white);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  padding: 14px 8px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  text-align: center;
+  transition: all .15s;
+  box-shadow: var(--shadow-sm);
+}
+.shortcut-card:hover {
+  border-color: var(--blue);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+.shortcut-card__icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--blue-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.shortcut-card__label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-1);
+  line-height: 1.3;
+}
+
+/* ─── Delivery info banner ─── */
+.delivery-banner {
+  background: linear-gradient(135deg, var(--navy) 0%, var(--blue) 100%);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #fff;
+}
+.delivery-banner__icon {
+  width: 36px;
+  height: 36px;
+  background: rgba(255,255,255,.15);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.delivery-banner__title { font-size: 12px; font-weight: 700; }
+.delivery-banner__sub { font-size: 10px; opacity: .8; margin-top: 1px; }
+
+/* ─── Order confirm / track cards ─── */
+.summary-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  color: var(--text-2);
+}
+.summary-line--total {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-1);
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+  margin-top: 4px;
+}
+
+/* ─── Overlays & Sheets ─── */
+.bottom-sheet-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,.45);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  z-index: 2000;
+  animation: fadeIn .2s ease;
+}
+.bottom-sheet {
+  background: var(--white);
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  padding: 20px 20px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: slideInUp .25s ease;
+  max-height: 85%;
+  overflow-y: auto;
+}
+.bottom-sheet__handle {
+  width: 36px;
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  margin: 0 auto -8px;
 }
