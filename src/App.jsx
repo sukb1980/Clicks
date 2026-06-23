@@ -2532,36 +2532,7 @@ export default function App() {
             <span>Promotional discounts</span>
             <span style={{ fontWeight: 600 }}>- R0.00</span>
           </div>
-          
-          {/* CashBack and eBucks row */}
-          <div style={{ display: 'flex', gap: 10, margin: '4px 0' }}>
-            <button disabled style={{
-              flex: 1,
-              padding: '8px 12px',
-              borderRadius: 20,
-              border: 'none',
-              background: '#f1f3f9',
-              color: 'var(--text-3)',
-              fontSize: 11,
-              fontWeight: 700,
-              cursor: 'not-allowed'
-            }}>
-              R0.00 CashBack available
-            </button>
-            <button style={{
-              flex: 1,
-              padding: '8px 12px',
-              borderRadius: 20,
-              border: 'none',
-              background: '#FF5A00',
-              color: '#fff',
-              fontSize: 11,
-              fontWeight: 700,
-              cursor: 'pointer'
-            }} onClick={() => alert("Use eBucks discount applied (demo)")}>
-              Use eBucks
-            </button>
-          </div>
+
 
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: 'var(--text-2)' }}>
             <span>Delivery fee</span>
